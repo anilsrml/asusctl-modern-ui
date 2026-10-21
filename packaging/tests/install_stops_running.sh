@@ -5,7 +5,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 T="$(mktemp -d)"
-trap 'kill $OTHER 2>/dev/null || true; rm -rf "$T"' EXIT
+trap 'kill ${OLD:-} ${OTHER:-} 2>/dev/null || true; rm -rf "$T"' EXIT
 BIN=rog-control-center-modern
 APP_ID=io.github.anilsrml.RogControlModern
 
