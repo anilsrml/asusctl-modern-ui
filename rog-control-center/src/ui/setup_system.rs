@@ -118,30 +118,32 @@ pub fn setup_system_page(
             if power.is_none() {
                 power = rog_platform::power::AsusPower::new().ok();
             }
-            let (has_bat, health, consumption, status, estimate_str) = if let Some(ref p) = power {
-                if p.has_battery() {
-                    let health = p.get_battery_health().unwrap_or(0) as i32;
-                    let consumption = p.get_battery_power_consumption().unwrap_or(-1.0);
-                    let status = p
-                        .get_battery_status()
-                        .unwrap_or_else(|_| "Unknown".to_string());
-                    let estimate = p.get_battery_time_estimate().ok().flatten();
-                    let est_str = if let Some((_, h, m)) = estimate {
-                        if h > 0 {
-                            format!("{}h {}m", h, m)
+            let (has_bat, percent, health, consumption, status, estimate_str) =
+                if let Some(ref p) = power {
+                    if p.has_battery() {
+                        let percent = super::overview::read_battery_percent().unwrap_or(-1);
+                        let health = p.get_battery_health().unwrap_or(0) as i32;
+                        let consumption = p.get_battery_power_consumption().unwrap_or(-1.0);
+                        let status = p
+                            .get_battery_status()
+                            .unwrap_or_else(|_| "Unknown".to_string());
+                        let estimate = p.get_battery_time_estimate().ok().flatten();
+                        let est_str = if let Some((_, h, m)) = estimate {
+                            if h > 0 {
+                                format!("{}h {}m", h, m)
+                            } else {
+                                format!("{}m", m)
+                            }
                         } else {
-                            format!("{}m", m)
-                        }
+                            "".to_string()
+                        };
+                        (true, percent, health, consumption, status, est_str)
                     } else {
-                        "".to_string()
-                    };
-                    (true, health, consumption, status, est_str)
+                        (false, -1, -1, -1.0, "Unknown".to_string(), "".to_string())
+                    }
                 } else {
-                    (false, -1, -1.0, "Unknown".to_string(), "".to_string())
-                }
-            } else {
-                (false, -1, -1.0, "Unknown".to_string(), "".to_string())
-            };
+                    (false, -1, -1, -1.0, "Unknown".to_string(), "".to_string())
+                };
 
             let cpu_temp = rog_platform::cpu::get_cpu_temp();
             let gpu_telemetry = rog_platform::gpu_pci::get_gpu_telemetry();
@@ -171,11 +173,13 @@ pub fn setup_system_page(
             let success = handle.upgrade_in_event_loop(move |ui| {
                 let data = ui.global::<SystemPageData>();
                 if has_bat {
+                    data.set_battery_percent(percent);
                     data.set_battery_health(health);
                     data.set_battery_power_consumption(consumption);
                     data.set_battery_status(status.into());
                     data.set_battery_time_estimate(estimate_str.into());
                 } else {
+                    data.set_battery_percent(-1);
                     data.set_battery_health(-1);
                 }
                 data.set_cpu_temp_val(cpu_temp);
