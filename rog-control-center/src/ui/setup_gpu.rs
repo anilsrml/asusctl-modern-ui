@@ -241,8 +241,7 @@ fn apu_mem_val_to_label(value: i32) -> SharedString {
 // Populate GPU page choices and wire the `cb_set_gpu_mode` callback
 pub fn setup_gpu_page(ui: &MainWindow) {
     let handle = ui.as_weak();
-    ui.global::<GPUPageData>()
-        .on_snap(snap_to_step);
+    ui.global::<GPUPageData>().on_snap(snap_to_step);
 
     // Slider steps come from each attribute's ScalarIncrement, never hardcoded.
     let step_handle = ui.as_weak();
