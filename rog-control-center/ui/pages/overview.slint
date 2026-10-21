@@ -1,11 +1,68 @@
 import { ScrollView } from "std-widgets.slint";
 import { Theme } from "../theme.slint";
 import { Card, MetricTile, SegmentedControl, ToggleRow } from "../widgets/kit.slint";
-import { SystemPageData } from "system.slint";
+import { SliderRow } from "../widgets/gpu_widgets.slint";
+import { SystemPageData } from "../types/system_types.slint";
 
 export global OverviewData {
     // true when the charge end threshold is below 100
     callback toggle_charge_limit(bool);
+    // Position of a platform profile enum value in the profile selector, -1
+    // when this machine does not offer it (implemented in Rust).
+    pure callback profile_position(int) -> int;
+}
+
+// One label/value line of the detailed monitor
+component StatRow inherits HorizontalLayout {
+    in property <string> label;
+    in property <string> value;
+    spacing: 8px;
+    Text {
+        text: root.label;
+        color: Theme.text-secondary;
+        font-size: Theme.font-body;
+        horizontal-stretch: 1;
+    }
+    Text {
+        text: root.value;
+        color: Theme.text;
+        font-size: Theme.font-body;
+        font-weight: 500;
+    }
+}
+
+// Profile picked automatically for one power source
+component AutoProfileCard inherits Rectangle {
+    in property <string> title;
+    in property <string> hint;
+    in property <bool> auto-enabled;
+    in property <int> profile-value;
+    callback toggled(bool);
+    callback profile-selected(int);
+    background: Theme.surface-raised;
+    border-color: Theme.border;
+    border-width: 1px;
+    border-radius: Theme.radius-card;
+
+    VerticalLayout {
+        padding: Theme.pad;
+        spacing: 8px;
+        ToggleRow {
+            title: root.title;
+            hint: root.hint;
+            checked: root.auto-enabled;
+            toggled(value) => {
+                root.toggled(value);
+            }
+        }
+        if root.auto-enabled: SegmentedControl {
+            model: SystemPageData.platform_profile_choices;
+            current-index: OverviewData.profile_position(root.profile-value);
+            selected(index) => {
+                root.profile-selected(SystemPageData.platform_profile_indexes[index]);
+            }
+        }
+    }
 }
 
 export component PageOverview inherits Rectangle {
@@ -22,6 +79,13 @@ export component PageOverview inherits Rectangle {
         : "";
     property <bool> has_charge_limit: SystemPageData.charge_control_end_threshold != -1;
     property <bool> has_overdrive: SystemPageData.panel_overdrive != -1;
+    property <bool> has_boot_sound: SystemPageData.boot_sound != -1;
+    property <bool> has_auto_brightness: SystemPageData.screen_auto_brightness != -1;
+    property <bool> has_mcu_powersave: SystemPageData.mcu_powersave != -1;
+    property <bool> has_mini_led: SystemPageData.mini_led_mode != -1;
+    property <bool> has_screenpad: SystemPageData.screenpad_brightness != -1;
+    property <bool> has_quick: has_charge_limit || has_overdrive || has_boot_sound || has_auto_brightness || has_mcu_powersave || has_mini_led || has_screenpad;
+    property <bool> monitor_open: false;
     clip: true;
 
     ScrollView {
@@ -68,7 +132,107 @@ export component PageOverview inherits Rectangle {
                 }
             }
 
-            if root.has_charge_limit || root.has_overdrive: Card {
+            Card {
+                Rectangle {
+                    height: 24px;
+                    HorizontalLayout {
+                        Text {
+                            text: @tr("Detailed monitoring");
+                            color: Theme.text;
+                            font-size: Theme.font-title;
+                            font-weight: 500;
+                            vertical-alignment: center;
+                            horizontal-stretch: 1;
+                        }
+                        Text {
+                            text: root.monitor_open ? "▾" : "▸";
+                            color: Theme.text-secondary;
+                            font-size: Theme.font-title;
+                            vertical-alignment: center;
+                        }
+                    }
+                    TouchArea {
+                        clicked => {
+                            root.monitor_open = !root.monitor_open;
+                        }
+                    }
+                }
+                if root.monitor_open: VerticalLayout {
+                    spacing: 6px;
+                    if SystemPageData.cpu_usage_val >= 0: StatRow {
+                        label: @tr("CPU usage");
+                        value: Math.round(SystemPageData.cpu_usage_val) + " %";
+                    }
+                    if SystemPageData.cpu_freq_mhz >= 0: StatRow {
+                        label: @tr("CPU frequency");
+                        value: Math.round(SystemPageData.cpu_freq_mhz) + " MHz";
+                    }
+                    if SystemPageData.has_igpu: StatRow {
+                        label: @tr("iGPU temperature");
+                        value: SystemPageData.igpu_temp_val > 0 ? Math.round(SystemPageData.igpu_temp_val) + " °C" : @tr("N/A");
+                    }
+                    if SystemPageData.has_igpu: StatRow {
+                        label: @tr("iGPU usage");
+                        value: SystemPageData.igpu_usage_val >= 0 ? Math.round(SystemPageData.igpu_usage_val) + " %" : @tr("N/A");
+                    }
+                    if SystemPageData.has_dgpu: StatRow {
+                        label: @tr("dGPU temperature");
+                        value: SystemPageData.dgpu_suspended ? @tr("Suspended") : (SystemPageData.gpu_temp_val >= 0 ? Math.round(SystemPageData.gpu_temp_val) + " °C" : @tr("N/A"));
+                    }
+                    if SystemPageData.has_dgpu: StatRow {
+                        label: @tr("dGPU usage");
+                        value: SystemPageData.dgpu_suspended ? @tr("Suspended") : (SystemPageData.gpu_usage_val >= 0 ? Math.round(SystemPageData.gpu_usage_val) + " %" : @tr("N/A"));
+                    }
+                    if SystemPageData.ram_usage_val >= 0: StatRow {
+                        label: @tr("RAM usage");
+                        value: Math.round(SystemPageData.ram_usage_val) + " %";
+                    }
+                    if SystemPageData.cpu_fan_rpm >= 0: StatRow {
+                        label: @tr("CPU fan");
+                        value: SystemPageData.cpu_fan_rpm + " rpm";
+                    }
+                    if SystemPageData.has_dgpu && SystemPageData.gpu_fan_rpm >= 0: StatRow {
+                        label: @tr("GPU fan");
+                        value: SystemPageData.gpu_fan_rpm + " rpm";
+                    }
+                    if SystemPageData.mid_fan_rpm > 0: StatRow {
+                        label: @tr("Mid fan");
+                        value: SystemPageData.mid_fan_rpm + " rpm";
+                    }
+                }
+            }
+
+            AutoProfileCard {
+                title: @tr("Profile when plugged in");
+                hint: @tr("Switch profile automatically when the charger is connected.");
+                auto-enabled: SystemPageData.change_platform_profile_on_ac;
+                profile-value: SystemPageData.platform_profile_on_ac;
+                toggled(value) => {
+                    SystemPageData.change_platform_profile_on_ac = value;
+                    SystemPageData.cb_change_platform_profile_on_ac(value);
+                }
+                profile-selected(value) => {
+                    SystemPageData.platform_profile_on_ac = value;
+                    SystemPageData.cb_platform_profile_on_ac(value);
+                }
+            }
+
+            AutoProfileCard {
+                title: @tr("Profile on battery");
+                hint: @tr("Switch profile automatically when running on battery.");
+                auto-enabled: SystemPageData.change_platform_profile_on_battery;
+                profile-value: SystemPageData.platform_profile_on_battery;
+                toggled(value) => {
+                    SystemPageData.change_platform_profile_on_battery = value;
+                    SystemPageData.cb_change_platform_profile_on_battery(value);
+                }
+                profile-selected(value) => {
+                    SystemPageData.platform_profile_on_battery = value;
+                    SystemPageData.cb_platform_profile_on_battery(value);
+                }
+            }
+
+            if root.has_quick: Card {
                 title: @tr("Quick settings");
                 if root.has_charge_limit: ToggleRow {
                     title: @tr("Limit charge to 80%");
@@ -87,6 +251,77 @@ export component PageOverview inherits Rectangle {
                         SystemPageData.cb_panel_overdrive(SystemPageData.panel_overdrive);
                     }
                 }
+                if root.has_boot_sound: ToggleRow {
+                    title: @tr("POST boot sound");
+                    hint: @tr("Plays the startup chime when the laptop powers on.");
+                    checked: SystemPageData.boot_sound == 1;
+                    toggled(value) => {
+                        SystemPageData.boot_sound = value ? 1 : 0;
+                        SystemPageData.cb_boot_sound(SystemPageData.boot_sound);
+                    }
+                }
+                if root.has_auto_brightness: ToggleRow {
+                    title: @tr("Screen auto brightness");
+                    hint: @tr("Adjusts the display brightness to the ambient light.");
+                    checked: SystemPageData.screen_auto_brightness == 1;
+                    toggled(value) => {
+                        SystemPageData.screen_auto_brightness = value ? 1 : 0;
+                        SystemPageData.cb_screen_auto_brightness(SystemPageData.screen_auto_brightness);
+                    }
+                }
+                if root.has_mcu_powersave: ToggleRow {
+                    title: @tr("MCU powersave");
+                    hint: @tr("Lets the keyboard controller sleep to save power.");
+                    checked: SystemPageData.mcu_powersave == 1;
+                    toggled(value) => {
+                        SystemPageData.mcu_powersave = value ? 1 : 0;
+                        SystemPageData.cb_mcu_powersave(SystemPageData.mcu_powersave);
+                    }
+                }
+                if root.has_mini_led: VerticalLayout {
+                    spacing: 6px;
+                    Text {
+                        text: @tr("MiniLED mode");
+                        color: Theme.text;
+                        font-size: Theme.font-body;
+                    }
+                    SegmentedControl {
+                        model: SystemPageData.mini_led_mode_choices;
+                        current-index: SystemPageData.mini_led_mode;
+                        selected(index) => {
+                            SystemPageData.mini_led_mode = index;
+                            SystemPageData.cb_mini_led_mode(index);
+                        }
+                    }
+                }
+                if root.has_screenpad: SliderRow {
+                    title: @tr("Screenpad brightness");
+                    hint: @tr("Brightness of the secondary touch display.");
+                    unit: "%";
+                    minimum: 0;
+                    maximum: 100;
+                    value: SystemPageData.screenpad_brightness;
+                    released(raw) => {
+                        SystemPageData.screenpad_brightness = Math.round(raw);
+                        SystemPageData.cb_screenpad_brightness(Math.round(raw));
+                    }
+                }
+                if root.has_screenpad: ToggleRow {
+                    title: @tr("Sync with primary");
+                    hint: @tr("Screenpad follows the main display brightness.");
+                    checked: SystemPageData.screenpad_sync_with_primary;
+                    toggled(value) => {
+                        SystemPageData.screenpad_sync_with_primary = value;
+                        SystemPageData.cb_screenpad_sync_with_primary(value);
+                    }
+                }
+            }
+
+            if !SystemPageData.asus_armoury_loaded: Text {
+                text: @tr("The asus-armoury driver is not loaded. Advanced settings need a kernel that includes it.");
+                color: Theme.danger-text;
+                font-size: Theme.font-small;
+                wrap: word-wrap;
             }
         }
     }

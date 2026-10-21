@@ -2,7 +2,7 @@ import { ScrollView } from "std-widgets.slint";
 import { Theme } from "../theme.slint";
 import { Card, SegmentedControl, ToggleRow } from "../widgets/kit.slint";
 import { SliderRow, WarningBand } from "../widgets/gpu_widgets.slint";
-import { SystemPageData } from "system.slint";
+import { SystemPageData } from "../types/system_types.slint";
 import { FanPageData } from "../types/fan_types.slint";
 
 export global GPUPageData {
@@ -32,12 +32,16 @@ export global GPUPageData {
     in-out property <int> ppt_pl3_step: 1;
     in-out property <int> nv_boost_step: 1;
     in-out property <int> nv_temp_step: 1;
+    in-out property <int> ppt_fppt_step: 1;
+    in-out property <int> ppt_apu_sppt_step: 1;
+    in-out property <int> ppt_platform_sppt_step: 1;
+    in-out property <int> nv_tgp_step: 1;
     // Snap a raw slider value to min/max/step (implemented in Rust).
     pure callback snap(float, int, int, int) -> int;
 }
 
 export component PageGPU inherits Rectangle {
-    // Mirrors PageSystem: the kernel only accepts PPT writes while a custom
+    // The kernel only accepts PPT writes while a custom
     // fan curve is enabled for the active profile.
     property <int> active_profile_value: (SystemPageData.platform_profile >= 0 && SystemPageData.platform_profile < SystemPageData.platform_profile_indexes.length) ? SystemPageData.platform_profile_indexes[SystemPageData.platform_profile] : -1;
     property <bool> fan_curve_active: (active_profile_value == 0 && (FanPageData.balanced_cpu_enabled || FanPageData.balanced_gpu_enabled || FanPageData.balanced_mid_enabled)) || (active_profile_value == 1 && (FanPageData.performance_cpu_enabled || FanPageData.performance_gpu_enabled || FanPageData.performance_mid_enabled)) || ((active_profile_value == 2 || active_profile_value == 3) && (FanPageData.quiet_cpu_enabled || FanPageData.quiet_gpu_enabled || FanPageData.quiet_mid_enabled));
@@ -48,6 +52,10 @@ export component PageGPU inherits Rectangle {
     property <bool> has_pl1: SystemPageData.ppt_pl1_spl.max > 0 && SystemPageData.ppt_pl1_spl.current != -1;
     property <bool> has_pl2: SystemPageData.ppt_pl2_sppt.max > 0 && SystemPageData.ppt_pl2_sppt.current != -1;
     property <bool> has_pl3: SystemPageData.ppt_pl3_fppt.max > 0 && SystemPageData.ppt_pl3_fppt.current != -1;
+    property <bool> has_fppt: SystemPageData.ppt_fppt.max > 0 && SystemPageData.ppt_fppt.current != -1;
+    property <bool> has_apu_sppt: SystemPageData.ppt_apu_sppt.max > 0 && SystemPageData.ppt_apu_sppt.current != -1;
+    property <bool> has_platform_sppt: SystemPageData.ppt_platform_sppt.max > 0 && SystemPageData.ppt_platform_sppt.current != -1;
+    property <bool> has_tgp: SystemPageData.nv_tgp.max > 0 && SystemPageData.nv_tgp.current != -1;
 
     // Fixed three labels; ids tell which of them this machine offers.
     property <[string]> modes_all: [@tr("Hybrid"), @tr("iGPU only"), @tr("dGPU only (MUX)")];
@@ -63,7 +71,7 @@ export component PageGPU inherits Rectangle {
             spacing: Theme.gap;
             alignment: start;
 
-            if !GPUPageData.gpu_switchable && !root.has_boost && !root.has_temp && !root.has_pl1 && !root.has_pl2 && !root.has_pl3 && !GPUPageData.apu_mem_present && !GPUPageData.has_xgm_led: Text {
+            if !GPUPageData.gpu_switchable && !root.has_boost && !root.has_temp && !root.has_pl1 && !root.has_pl2 && !root.has_pl3 && !root.has_fppt && !root.has_apu_sppt && !root.has_platform_sppt && !root.has_tgp && !GPUPageData.apu_mem_present && !GPUPageData.has_xgm_led: Text {
                 text: @tr("This device has no switchable GPU.");
                 color: Theme.text-secondary;
                 font-size: Theme.font-body;
@@ -97,7 +105,7 @@ export component PageGPU inherits Rectangle {
                 }
             }
 
-            if root.has_boost || root.has_temp: Card {
+            if root.has_boost || root.has_temp || root.has_tgp: Card {
                 title: @tr("NVIDIA");
                 if !root.tuning_on: Text {
                     text: @tr("Unlock these in the power limits card below.");
@@ -139,13 +147,30 @@ export component PageGPU inherits Rectangle {
                         SystemPageData.cb_default_nv_temp_target();
                     }
                 }
+                if root.has_tgp: SliderRow {
+                    title: @tr("GPU power (TGP)");
+                    hint: @tr("Total power limit of the NVIDIA GPU. Higher is faster and hotter.");
+                    unit: "W";
+                    enabled: root.tuning_on;
+                    has-reset: true;
+                    minimum: SystemPageData.nv_tgp.min;
+                    maximum: SystemPageData.nv_tgp.max;
+                    value: SystemPageData.nv_tgp.current;
+                    released(raw) => {
+                        SystemPageData.nv_tgp.current = GPUPageData.snap(raw, SystemPageData.nv_tgp.min, SystemPageData.nv_tgp.max, GPUPageData.nv_tgp_step);
+                        SystemPageData.cb_nv_tgp(Math.round(SystemPageData.nv_tgp.current));
+                    }
+                    reset => {
+                        SystemPageData.cb_default_nv_tgp();
+                    }
+                }
             }
 
-            if root.has_pl1 || root.has_pl2 || root.has_pl3: Card {
+            if root.has_pl1 || root.has_pl2 || root.has_pl3 || root.has_fppt || root.has_apu_sppt || root.has_platform_sppt: Card {
                 title: @tr("CPU power limits (PPT)");
                 // Reset calls restore_default on the attribute; D-Bus
                 // DefaultValue reports 45/54/65 W while the kernel sysfs
-                // default is 80 W. Behaviour is kept as on the System page.
+                // default is 80 W. The reset behaviour is unchanged.
                 if SystemPageData.ppt_enabled_available: ToggleRow {
                     title: @tr("Enable tuning");
                     hint: @tr("Limits below are ignored until tuning is on.");
@@ -219,6 +244,57 @@ export component PageGPU inherits Rectangle {
                     }
                     reset => {
                         SystemPageData.cb_default_ppt_pl3_fppt();
+                    }
+                }
+                if root.has_fppt: SliderRow {
+                    title: @tr("Fast package limit");
+                    hint: @tr("Millisecond-scale power spikes of the whole package.");
+                    unit: "W";
+                    enabled: root.tuning_on;
+                    has-reset: true;
+                    minimum: SystemPageData.ppt_fppt.min;
+                    maximum: SystemPageData.ppt_fppt.max;
+                    value: SystemPageData.ppt_fppt.current;
+                    released(raw) => {
+                        SystemPageData.ppt_fppt.current = GPUPageData.snap(raw, SystemPageData.ppt_fppt.min, SystemPageData.ppt_fppt.max, GPUPageData.ppt_fppt_step);
+                        SystemPageData.cb_ppt_fppt(Math.round(SystemPageData.ppt_fppt.current));
+                    }
+                    reset => {
+                        SystemPageData.cb_default_ppt_fppt();
+                    }
+                }
+                if root.has_apu_sppt: SliderRow {
+                    title: @tr("APU sustained");
+                    hint: @tr("Long-term power shared by the CPU and integrated graphics.");
+                    unit: "W";
+                    enabled: root.tuning_on;
+                    has-reset: true;
+                    minimum: SystemPageData.ppt_apu_sppt.min;
+                    maximum: SystemPageData.ppt_apu_sppt.max;
+                    value: SystemPageData.ppt_apu_sppt.current;
+                    released(raw) => {
+                        SystemPageData.ppt_apu_sppt.current = GPUPageData.snap(raw, SystemPageData.ppt_apu_sppt.min, SystemPageData.ppt_apu_sppt.max, GPUPageData.ppt_apu_sppt_step);
+                        SystemPageData.cb_ppt_apu_sppt(Math.round(SystemPageData.ppt_apu_sppt.current));
+                    }
+                    reset => {
+                        SystemPageData.cb_default_ppt_apu_sppt();
+                    }
+                }
+                if root.has_platform_sppt: SliderRow {
+                    title: @tr("Platform sustained");
+                    hint: @tr("Long-term power limit of the whole system.");
+                    unit: "W";
+                    enabled: root.tuning_on;
+                    has-reset: true;
+                    minimum: SystemPageData.ppt_platform_sppt.min;
+                    maximum: SystemPageData.ppt_platform_sppt.max;
+                    value: SystemPageData.ppt_platform_sppt.current;
+                    released(raw) => {
+                        SystemPageData.ppt_platform_sppt.current = GPUPageData.snap(raw, SystemPageData.ppt_platform_sppt.min, SystemPageData.ppt_platform_sppt.max, GPUPageData.ppt_platform_sppt_step);
+                        SystemPageData.cb_ppt_platform_sppt(Math.round(SystemPageData.ppt_platform_sppt.current));
+                    }
+                    reset => {
+                        SystemPageData.cb_default_ppt_platform_sppt();
                     }
                 }
             }

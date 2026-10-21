@@ -1,7 +1,7 @@
 import { Palette, Button, VerticalBox } from "std-widgets.slint";
 import { AppSize } from "globals.slint";
 import { PageOverview, OverviewData } from "pages/overview.slint";
-import { PageSystem, SystemPageData, AttrMinMax } from "pages/system.slint";
+import { SystemPageData, AttrMinMax } from "types/system_types.slint";
 import { SideBar } from "widgets/sidebar.slint";
 import { PageAbout } from "pages/about.slint";
 import { PageFans } from "pages/fans.slint";
@@ -33,7 +33,6 @@ export component MainWindow inherits Window {
     icon: @image-url("../data/rog-control-center-modern.png");
     in property <[bool]> sidebar_items_avilable: [
         true, // Overview
-        true,
         true,
         true,
         true,
@@ -85,7 +84,6 @@ export component MainWindow inherits Window {
             side-bar := SideBar {
                 model: [
                     @tr("Menu0" => "Overview"),
-                    @tr("Menu1" => "System Control"),
                     @tr("Menu2" => "Keyboard Aura"),
                     @tr("Menu3" => "AniMe Matrix"),
                     @tr("Menu4" => "Slash Lighting"),
@@ -97,7 +95,6 @@ export component MainWindow inherits Window {
                 ];
                 icons: [
                     @image-url("../data/icons/overview.svg"),
-                    @image-url("../data/icons/system.svg"),
                     @image-url("../data/icons/keyboard.svg"),
                     @image-url("../data/icons/anime.svg"),
                     @image-url("../data/icons/slash.svg"),
@@ -134,57 +131,52 @@ export component MainWindow inherits Window {
                 height: root.height + 12px;
             }
 
-            if(side-bar.current-item == 1): page := PageSystem {
+            /*if(side-bar.current-item == 1):*/ aura := PageAura {
                 width: root.width - side-bar.width;
                 height: root.height + 12px;
+                visible: side-bar.current-item == 1;
             }
 
-            /*if(side-bar.current-item == 2):*/ aura := PageAura {
+            if(side-bar.current-item == 2): PageAnime {
                 width: root.width - side-bar.width;
                 height: root.height + 12px;
                 visible: side-bar.current-item == 2;
             }
 
-            if(side-bar.current-item == 3): PageAnime {
+            if(side-bar.current-item == 3): PageSlash {
                 width: root.width - side-bar.width;
                 height: root.height + 12px;
                 visible: side-bar.current-item == 3;
             }
 
-            if(side-bar.current-item == 4): PageSlash {
+            if(side-bar.current-item == 4): fans := PageFans {
                 width: root.width - side-bar.width;
                 height: root.height + 12px;
                 visible: side-bar.current-item == 4;
             }
 
-            if(side-bar.current-item == 5): fans := PageFans {
+            if(side-bar.current-item == 5): PageGPU {
                 width: root.width - side-bar.width;
                 height: root.height + 12px;
                 visible: side-bar.current-item == 5;
             }
 
-            if(side-bar.current-item == 6): PageGPU {
+            if(side-bar.current-item == 6): PageBattery {
                 width: root.width - side-bar.width;
                 height: root.height + 12px;
                 visible: side-bar.current-item == 6;
             }
 
-            if(side-bar.current-item == 7): PageBattery {
+            if(side-bar.current-item == 7): PageAppSettings {
                 width: root.width - side-bar.width;
                 height: root.height + 12px;
                 visible: side-bar.current-item == 7;
             }
 
-            if(side-bar.current-item == 8): PageAppSettings {
+            if(side-bar.current-item == 8): PageAbout {
                 width: root.width - side-bar.width;
                 height: root.height + 12px;
                 visible: side-bar.current-item == 8;
-            }
-
-            if(side-bar.current-item == 9): PageAbout {
-                width: root.width - side-bar.width;
-                height: root.height + 12px;
-                visible: side-bar.current-item == 9;
             }
 
             if toast: Toast {

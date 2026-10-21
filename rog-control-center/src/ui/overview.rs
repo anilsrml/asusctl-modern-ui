@@ -1,8 +1,8 @@
 //! Logic behind the Overview page.
 
-use slint::ComponentHandle;
+use slint::{ComponentHandle, Model};
 
-use crate::{MainWindow, OverviewData, SystemPageData};
+use crate::{MainWindow, OverviewData, SystemPageData, types::profile_map};
 
 /// Charge end-threshold written when the limiter is switched on.
 pub const CHARGE_LIMIT_ON: i32 = 80;
@@ -40,8 +40,21 @@ pub fn read_battery_percent() -> Option<i32> {
         .find_map(|e| parse_capacity(&std::fs::read_to_string(e.path().join("capacity")).ok()?))
 }
 
-/// Route the Overview charge-limit switch through the System page callback.
+/// Route the Overview charge-limit switch through the System page callback and
+/// resolve profile selector positions from the offered profile list.
 pub fn setup_overview_page(ui: &MainWindow) {
+    let weak = ui.as_weak();
+    ui.global::<OverviewData>()
+        .on_profile_position(move |value| {
+            weak.upgrade().map_or(-1, |ui| {
+                let indexes: Vec<i32> = ui
+                    .global::<SystemPageData>()
+                    .get_platform_profile_indexes()
+                    .iter()
+                    .collect();
+                profile_map::slint_position(&indexes, value)
+            })
+        });
     let weak = ui.as_weak();
     ui.global::<OverviewData>()
         .on_toggle_charge_limit(move |enabled| {

@@ -31,6 +31,11 @@ pub fn position_of(indexes: &[i32], value: i32) -> Option<usize> {
     indexes.iter().position(|i| *i == value)
 }
 
+/// Selector position for `value` as a Slint int, `-1` if it is not offered.
+pub fn slint_position(indexes: &[i32], value: i32) -> i32 {
+    position_of(indexes, value).map_or(-1, |p| p as i32)
+}
+
 /// Enum value to send for a dropdown position, or `None` if out of range.
 pub fn value_at(indexes: &[i32], position: i32) -> Option<i32> {
     usize::try_from(position)
@@ -77,6 +82,20 @@ mod tests {
             ]
         );
         assert_eq!(dropdown_indexes(&[1, 2, 0], 4), vec![2, 0, 1]);
+    }
+
+    #[test]
+    fn slint_position_is_minus_one_when_not_offered() {
+        let idx = dropdown_indexes(
+            &[
+                0, 1, 2, 3,
+            ],
+            4,
+        );
+        assert_eq!(slint_position(&idx, 3), 0);
+        assert_eq!(slint_position(&idx, 1), 3);
+        assert_eq!(slint_position(&idx, 4), -1);
+        assert_eq!(slint_position(&[], 0), -1);
     }
 
     #[test]

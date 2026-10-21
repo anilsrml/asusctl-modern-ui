@@ -1583,3 +1583,183 @@ msgstr "Doygunluk"
 msgctxt "Colour picker"
 msgid "Value"
 msgstr "Işık değeri"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Detailed monitoring"
+msgstr "Ayrıntılı izleme"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "CPU usage"
+msgstr "CPU kullanımı"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "CPU frequency"
+msgstr "CPU frekansı"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "iGPU temperature"
+msgstr "iGPU sıcaklığı"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "iGPU usage"
+msgstr "iGPU kullanımı"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "N/A"
+msgstr "Yok"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "dGPU temperature"
+msgstr "dGPU sıcaklığı"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "dGPU usage"
+msgstr "dGPU kullanımı"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Suspended"
+msgstr "Askıda"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "RAM usage"
+msgstr "RAM kullanımı"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "GPU fan"
+msgstr "GPU fanı"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Mid fan"
+msgstr "Orta fan"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Profile when plugged in"
+msgstr "Fişe takılıyken profil"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Switch profile automatically when the charger is connected."
+msgstr "Şarj aleti takıldığında profil otomatik değişir."
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Profile on battery"
+msgstr "Pildeyken profil"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Switch profile automatically when running on battery."
+msgstr "Pile geçildiğinde profil otomatik değişir."
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "POST boot sound"
+msgstr "Açılış sesi (POST)"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Plays the startup chime when the laptop powers on."
+msgstr "Dizüstü açılırken başlangıç sesini çalar."
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Screen auto brightness"
+msgstr "Ekran otomatik parlaklık"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Adjusts the display brightness to the ambient light."
+msgstr "Ekran parlaklığını ortam ışığına göre ayarlar."
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "MCU powersave"
+msgstr "MCU güç tasarrufu"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Lets the keyboard controller sleep to save power."
+msgstr "Klavye denetleyicisinin güç tasarrufu için uyumasına izin verir."
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "MiniLED mode"
+msgstr "MiniLED modu"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Screenpad brightness"
+msgstr "Screenpad parlaklığı"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Brightness of the secondary touch display."
+msgstr "İkinci dokunmatik ekranın parlaklığı."
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Sync with primary"
+msgstr "Ana ekranla eşitle"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Screenpad follows the main display brightness."
+msgstr "Screenpad ana ekranın parlaklığını izler."
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "The asus-armoury driver is not loaded. Advanced settings need a kernel that includes it."
+msgstr "asus-armoury sürücüsü yüklü değil. Gelişmiş ayarlar için onu içeren bir çekirdek gerekir."
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "GPU power (TGP)"
+msgstr "GPU gücü (TGP)"
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "Total power limit of the NVIDIA GPU. Higher is faster and hotter."
+msgstr "NVIDIA GPU'nun toplam güç sınırı. Yükseldikçe hızlanır ve ısınır."
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "Fast package limit"
+msgstr "Hızlı paket sınırı"
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "Millisecond-scale power spikes of the whole package."
+msgstr "Tüm paketin milisaniyelik güç sıçramaları."
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "APU sustained"
+msgstr "APU sürekli"
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "Long-term power shared by the CPU and integrated graphics."
+msgstr "CPU ve tümleşik grafiğin paylaştığı uzun süreli güç."
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "Platform sustained"
+msgstr "Platform sürekli"
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "Long-term power limit of the whole system."
+msgstr "Tüm sistemin uzun süreli güç sınırı."

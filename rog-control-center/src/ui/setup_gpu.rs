@@ -263,6 +263,10 @@ pub fn setup_gpu_page(ui: &MainWindow) {
                         FirmwareAttribute::PptPl3Fppt => g.set_ppt_pl3_step(step),
                         FirmwareAttribute::NvDynamicBoost => g.set_nv_boost_step(step),
                         FirmwareAttribute::NvTempTarget => g.set_nv_temp_step(step),
+                        FirmwareAttribute::PptFppt => g.set_ppt_fppt_step(step),
+                        FirmwareAttribute::PptApuSppt => g.set_ppt_apu_sppt_step(step),
+                        FirmwareAttribute::PptPlatformSppt => g.set_ppt_platform_sppt_step(step),
+                        FirmwareAttribute::DgpuTgp => g.set_nv_tgp_step(step),
                         _ => {}
                     }
                 })

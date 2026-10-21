@@ -135,7 +135,6 @@ pub fn setup_window(
         [
             // Needs to match the order of slint sidebar items
             available.contains(&"xyz.ljones.Platform".to_string()), // Overview
-            available.contains(&"xyz.ljones.Platform".to_string()),
             available.contains(&"xyz.ljones.Aura".to_string()),
             available.contains(&"xyz.ljones.Anime".to_string()),
             available.contains(&"xyz.ljones.Slash".to_string()),
