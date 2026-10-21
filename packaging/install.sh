@@ -16,7 +16,34 @@ APPS_DIR="$DATA_HOME/applications"
 ICON_DIR="$DATA_HOME/icons/hicolor/512x512/apps"
 LOCALE_DIR="$DATA_HOME/locale"
 
+# PIDs of this user's processes running the installed binary, including a
+# copy whose file was already replaced ("(deleted)")
+installed_pids() {
+    local pid exe
+    for pid in $(pgrep -u "$(id -u)" -x "${BIN:0:15}" 2>/dev/null); do
+        exe="$(readlink "/proc/$pid/exe" 2>/dev/null)" || continue
+        [[ "$exe" == "$BIN_DIR/$BIN" || "$exe" == "$BIN_DIR/$BIN (deleted)" ]] && echo "$pid"
+    done
+}
+
+# Stop running copies so the next launch uses the new binary instead of
+# handing off to the old single instance. Prints whether one was running.
+stop_running() {
+    local pids
+    pids="$(installed_pids)"
+    [[ -z "$pids" ]] && return 1
+    kill $pids 2>/dev/null || true
+    for _ in 1 2 3 4 5 6 7 8 9 10; do
+        [[ -z "$(installed_pids)" ]] && break
+        sleep 0.3
+    done
+    [[ -n "$(installed_pids)" ]] && kill -9 $(installed_pids) 2>/dev/null || true
+    echo "Stopped the running ROG Control (Modern)."
+    return 0
+}
+
 uninstall() {
+    stop_running || true
     rm -f "$BIN_DIR/$BIN" \
         "$APPS_DIR/$APP_ID.desktop" \
         "$ICON_DIR/$BIN.png"
@@ -37,6 +64,9 @@ fi
 
 [[ -x "$HERE/bin/$BIN" ]] || { echo "error: $HERE/bin/$BIN not found; run from the release tarball" >&2; exit 1; }
 
+was_running=0
+stop_running && was_running=1
+
 install -Dm755 "$HERE/bin/$BIN" "$BIN_DIR/$BIN"
 install -Dm644 "$HERE/share/applications/$APP_ID.desktop" "$APPS_DIR/$APP_ID.desktop"
 # make the launcher independent of $PATH
@@ -53,6 +83,11 @@ command -v update-desktop-database >/dev/null && update-desktop-database "$APPS_
 command -v gtk-update-icon-cache >/dev/null && gtk-update-icon-cache -q -t "$DATA_HOME/icons/hicolor" 2>/dev/null || true
 
 echo "Installed to $BIN_DIR/$BIN"
+if [[ $was_running == 1 ]]; then
+    # Bring it back in the tray, as it was before the update
+    nohup "$BIN_DIR/$BIN" --background >/dev/null 2>&1 &
+    echo "Restarted it in the tray with the new version."
+fi
 case ":$PATH:" in
     *":$BIN_DIR:"*) ;;
     *) echo "note: $BIN_DIR is not in your PATH; use the app menu entry or add it." ;;
