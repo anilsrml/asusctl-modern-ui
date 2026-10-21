@@ -1352,3 +1352,123 @@ msgstr "Hafif işler için sessiz fanlar ve düşük güç tüketimi."
 msgctxt "PageOverview"
 msgid "Lowest power use to stretch battery life."
 msgstr "Pil ömrünü uzatmak için en düşük güç kullanımı."
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "iGPU only"
+msgstr "Sadece iGPU"
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "dGPU only (MUX)"
+msgstr "Sadece dGPU (MUX)"
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "Hybrid uses the integrated GPU and wakes the NVIDIA GPU on demand."
+msgstr "Hibrit modda tümleşik GPU kullanılır, NVIDIA GPU gerektiğinde uyanır."
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "The new GPU mode applies after a reboot."
+msgstr "Yeni GPU modu yeniden başlatmadan sonra geçerli olur."
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "NVIDIA"
+msgstr "NVIDIA"
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "Unlock these in the power limits card below."
+msgstr "Bunları açmak için aşağıdaki güç limitleri kartını kullanın."
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "Dynamic Boost"
+msgstr "Dynamic Boost"
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "Extra power the GPU may borrow from the CPU. Higher is faster and hotter."
+msgstr "GPU'nun CPU'dan ödünç alabileceği ek güç. Yüksek değer daha hızlı ve daha sıcaktır."
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "Temperature target"
+msgstr "Sıcaklık hedefi"
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "The GPU slows down once it reaches this temperature."
+msgstr "GPU bu sıcaklığa ulaşınca yavaşlar."
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "CPU power limits (PPT)"
+msgstr "CPU güç limitleri (PPT)"
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "Enable tuning"
+msgstr "Ayarlamayı etkinleştir"
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "Limits below are ignored until tuning is on."
+msgstr "Ayarlama açılana kadar aşağıdaki limitler yok sayılır."
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "Power limits need a custom fan curve. Turn one on for this profile in the Fans page."
+msgstr "Güç limitleri için özel fan eğrisi gerekir. Fanlar sayfasında bu profil için bir eğri açın."
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "PL1 sustained"
+msgstr "PL1 sürekli"
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "Long-term CPU power. Sets steady-state performance and heat."
+msgstr "Uzun süreli CPU gücü. Kararlı performansı ve ısıyı belirler."
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "PL2 turbo"
+msgstr "PL2 turbo"
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "Short-term CPU power for boost bursts."
+msgstr "Turbo atılımları için kısa süreli CPU gücü."
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "PL3 fast burst"
+msgstr "PL3 hızlı atılım"
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "Very short CPU power spikes for sudden load."
+msgstr "Ani yükler için çok kısa CPU güç sıçramaları."
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "Reserved GPU memory changes apply after a reboot."
+msgstr "Ayrılmış GPU belleği değişiklikleri yeniden başlatmadan sonra geçerli olur."
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "Light on the external GPU dock."
+msgstr "Harici GPU istasyonundaki ışık."
+
+#: rog-control-center/ui/pages/gpu.slint
+msgctxt "PageGPU"
+msgid "Stops the NVIDIA power daemon when unplugged to save power."
+msgstr "Fiş çekiliyken enerji tasarrufu için NVIDIA güç hizmetini durdurur."
+
+#: rog-control-center/ui/widgets/gpu_widgets.slint
+msgctxt "SliderRow"
+msgid "Reset"
+msgstr "Sıfırla"

@@ -1,0 +1,157 @@
+import { Theme } from "../theme.slint";
+
+// Warning colours; the shared Theme has no warning pair yet.
+global Warn {
+    out property <color> bg: Theme.dark ? #5c4a0a : #fdf3d0;
+    out property <color> fg: Theme.dark ? #f5dd8a : #6b5200;
+}
+
+// Band with a short warning message
+export component WarningBand inherits Rectangle {
+    in property <string> text;
+    background: Warn.bg;
+    border-radius: Theme.radius;
+    min-height: 36px;
+
+    HorizontalLayout {
+        padding: 10px;
+        Text {
+            text: root.text;
+            color: Warn.fg;
+            font-size: Theme.font-small;
+            wrap: word-wrap;
+            vertical-alignment: center;
+        }
+    }
+}
+
+// Bare horizontal slider. Reports the raw position on release; the page
+// snaps it to the attribute's range and step and feeds the result back
+// through `value`.
+export component ValueSlider inherits Rectangle {
+    in-out property <float> value;
+    in property <float> minimum;
+    in property <float> maximum;
+    in property <bool> enabled: true;
+    callback released(float);
+    out property <float> shown: touch.pressed ? drag : value;
+    property <float> drag;
+    property <float> span: maximum > minimum ? maximum - minimum : 1;
+    property <float> fraction: max(0, min(1, (shown - minimum) / span));
+    height: 24px;
+    opacity: enabled ? 1 : 0.45;
+
+    function pick(x: length) -> float {
+        return minimum + max(0, min(1, x / root.width)) * span;
+    }
+
+    Rectangle {
+        y: (parent.height - self.height) / 2;
+        height: 6px;
+        border-radius: 3px;
+        background: Theme.border-strong;
+        Rectangle {
+            x: 0;
+            width: root.fraction * parent.width;
+            border-radius: 3px;
+            background: Theme.accent;
+        }
+    }
+
+    Rectangle {
+        width: 16px;
+        height: 16px;
+        y: (parent.height - self.height) / 2;
+        x: root.fraction * (parent.width - self.width);
+        border-radius: 8px;
+        background: Theme.on-accent;
+        border-color: Theme.accent;
+        border-width: 2px;
+    }
+
+    touch := TouchArea {
+        enabled: root.enabled;
+        pointer-event(e) => {
+            if (e.kind == PointerEventKind.down) {
+                root.drag = root.pick(self.mouse-x);
+            }
+            if (e.kind == PointerEventKind.up && e.button == PointerEventButton.left) {
+                root.released(root.drag);
+            }
+        }
+        moved => {
+            root.drag = root.pick(self.mouse-x);
+        }
+    }
+}
+
+// A numeric setting: title, live readout, one-line hint, slider, optional reset
+export component SliderRow inherits Rectangle {
+    in property <string> title;
+    in property <string> hint;
+    in property <string> unit;
+    in property <bool> enabled: true;
+    in property <bool> has-reset: false;
+    in-out property <float> value;
+    in property <float> minimum;
+    in property <float> maximum;
+    callback released(float);
+    callback reset();
+    min-height: 62px;
+
+    VerticalLayout {
+        padding-bottom: 8px;
+        spacing: 4px;
+        HorizontalLayout {
+            spacing: 8px;
+            Text {
+                text: root.title;
+                color: root.enabled ? Theme.text : Theme.text-muted;
+                font-size: Theme.font-body;
+                vertical-alignment: center;
+                horizontal-stretch: 1;
+            }
+            Text {
+                text: "\{Math.round(slider.shown)} \{root.unit}";
+                color: root.enabled ? Theme.accent-text : Theme.text-muted;
+                font-size: Theme.font-body;
+                font-weight: 500;
+                vertical-alignment: center;
+            }
+            if root.has-reset: Rectangle {
+                width: reset-label.preferred-width + 16px;
+                border-radius: Theme.radius - 2px;
+                background: reset-touch.has-hover && root.enabled ? Theme.border : transparent;
+                opacity: root.enabled ? 1 : 0.45;
+                reset-label := Text {
+                    text: @tr("Reset");
+                    color: Theme.text-secondary;
+                    font-size: Theme.font-small;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+                reset-touch := TouchArea {
+                    enabled: root.enabled;
+                    clicked => {
+                        root.reset();
+                    }
+                }
+            }
+        }
+        slider := ValueSlider {
+            value <=> root.value;
+            minimum: root.minimum;
+            maximum: root.maximum;
+            enabled: root.enabled;
+            released(raw) => {
+                root.released(raw);
+            }
+        }
+        Text {
+            text: root.hint;
+            color: Theme.text-secondary;
+            font-size: Theme.font-small;
+            wrap: word-wrap;
+        }
+    }
+}
