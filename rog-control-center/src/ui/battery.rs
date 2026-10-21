@@ -120,7 +120,10 @@ pub fn read_battery(dir: &Path) -> BatteryReading {
             .and_then(|s| parse_state(&s)),
         power_w: read_power_w(dir),
         health: read_health(dir),
-        cycles: read_u64(dir, "cycle_count").and_then(|v| i32::try_from(v).ok()),
+        // Many laptops report 0 when the firmware does not track cycles
+        cycles: read_u64(dir, "cycle_count")
+            .filter(|v| *v > 0)
+            .and_then(|v| i32::try_from(v).ok()),
     }
 }
 
@@ -261,6 +264,12 @@ mod tests {
         assert_eq!(r.state, None);
         assert_eq!(r.power_w, None);
         assert_eq!(r.health, None);
+        assert_eq!(r.cycles, None);
+    }
+
+    #[test]
+    fn zero_cycle_count_means_firmware_does_not_report_it() {
+        let r = read_battery(&fixture(&[("cycle_count", "0\n")]));
         assert_eq!(r.cycles, None);
     }
 
