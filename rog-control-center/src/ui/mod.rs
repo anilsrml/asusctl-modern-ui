@@ -1,3 +1,4 @@
+pub mod aura_modes;
 pub mod fan_curve;
 pub mod overview;
 pub mod setup_anime;

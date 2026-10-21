@@ -77,8 +77,8 @@ export global AuraPageData {
     in-out property <[string]> mode_names: [
         @tr("Basic aura mode" => "Static"),
         @tr("Basic aura mode" => "Breathe"),
-        @tr("Basic aura mode" => "Strobe"),
-        @tr("Basic aura mode" => "Rainbow"),
+        @tr("Basic aura mode" => "Rainbow cycle"),
+        @tr("Basic aura mode" => "Rainbow wave"),
         @tr("Basic aura mode" => "Star"),
         @tr("Basic aura mode" => "Rain"),
         @tr("Basic aura mode" => "Highlight"),
@@ -89,7 +89,7 @@ export global AuraPageData {
         @tr("Basic aura mode" => "Comet"),
         @tr("Basic aura mode" => "Flash"),
     ];
-    in-out property <[string]> available_mode_names: [ @tr("Basic aura mode" => "Static"), @tr("Basic aura mode" => "Breathe"), @tr("Basic aura mode" => "Strobe") ];
+    in-out property <[string]> available_mode_names: [];
     in-out property <int> current_available_mode: 0;
     in-out property <[int]> supported_basic_modes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12];
     in-out property <[string]> zone_names: [

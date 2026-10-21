@@ -164,7 +164,7 @@ msgstr ""
 #: rog-control-center/ui/pages/aura.slint:141
 msgctxt "PageAura"
 msgid "Direction"
-msgstr ""
+msgstr "Yön"
 
 #: rog-control-center/ui/pages/aura.slint:162
 msgctxt "PageAura"
@@ -922,7 +922,7 @@ msgstr "Pilde nvidia-powerd'yi devre dışı bırak"
 #: rog-control-center/ui/types/aura_types.slint:54
 msgctxt "Aura power zone"
 msgid "Logo"
-msgstr ""
+msgstr "Logo"
 
 #: rog-control-center/ui/types/aura_types.slint:55
 msgctxt "Aura power zone"
@@ -932,17 +932,17 @@ msgstr "Klavye"
 #: rog-control-center/ui/types/aura_types.slint:56
 msgctxt "Aura power zone"
 msgid "Lightbar"
-msgstr ""
+msgstr "Işık Çubuğu"
 
 #: rog-control-center/ui/types/aura_types.slint:57
 msgctxt "Aura power zone"
 msgid "Lid"
-msgstr ""
+msgstr "Kapak"
 
 #: rog-control-center/ui/types/aura_types.slint:58
 msgctxt "Aura power zone"
 msgid "Rear Glow"
-msgstr ""
+msgstr "Arka Işık"
 
 #: rog-control-center/ui/types/aura_types.slint:59
 msgctxt "Aura power zone"
@@ -986,58 +986,58 @@ msgstr "Nefes Alma"
 
 #: rog-control-center/ui/types/aura_types.slint:80
 msgctxt "Basic aura mode"
-msgid "Strobe"
-msgstr "Flaş"
+msgid "Rainbow cycle"
+msgstr "Gökkuşağı Döngüsü"
 
 #: rog-control-center/ui/types/aura_types.slint:81
 msgctxt "Basic aura mode"
-msgid "Rainbow"
-msgstr "Gökkuşağı"
+msgid "Rainbow wave"
+msgstr "Gökkuşağı Dalgası"
 
 #: rog-control-center/ui/types/aura_types.slint:82
 msgctxt "Basic aura mode"
 msgid "Star"
-msgstr ""
+msgstr "Yıldız"
 
 #: rog-control-center/ui/types/aura_types.slint:83
 msgctxt "Basic aura mode"
 msgid "Rain"
-msgstr ""
+msgstr "Yağmur"
 
 #: rog-control-center/ui/types/aura_types.slint:84
 msgctxt "Basic aura mode"
 msgid "Highlight"
-msgstr ""
+msgstr "Vurgu"
 
 #: rog-control-center/ui/types/aura_types.slint:85
 msgctxt "Basic aura mode"
 msgid "Laser"
-msgstr ""
+msgstr "Lazer"
 
 #: rog-control-center/ui/types/aura_types.slint:86
 msgctxt "Basic aura mode"
 msgid "Ripple"
-msgstr ""
+msgstr "Dalga"
 
 #: rog-control-center/ui/types/aura_types.slint:87
 msgctxt "Basic aura mode"
 msgid "Nothing"
-msgstr ""
+msgstr "Hiçbiri"
 
 #: rog-control-center/ui/types/aura_types.slint:88
 msgctxt "Basic aura mode"
 msgid "Pulse"
-msgstr ""
+msgstr "Nabız"
 
 #: rog-control-center/ui/types/aura_types.slint:89
 msgctxt "Basic aura mode"
 msgid "Comet"
-msgstr ""
+msgstr "Kuyruklu Yıldız"
 
 #: rog-control-center/ui/types/aura_types.slint:90
 msgctxt "Basic aura mode"
 msgid "Flash"
-msgstr ""
+msgstr "Flaş"
 
 #: rog-control-center/ui/types/aura_types.slint:96
 msgctxt "Aura zone"
@@ -1352,3 +1352,78 @@ msgstr "Hafif işler için sessiz fanlar ve düşük güç tüketimi."
 msgctxt "PageOverview"
 msgid "Lowest power use to stretch battery life."
 msgstr "Pil ömrünü uzatmak için en düşük güç kullanımı."
+
+#: rog-control-center/ui/pages/aura.slint
+msgctxt "PageAura"
+msgid "Effect"
+msgstr "Efekt"
+
+#: rog-control-center/ui/pages/aura.slint
+msgctxt "PageAura"
+msgid "Colour"
+msgstr "Renk"
+
+#: rog-control-center/ui/pages/aura.slint
+msgctxt "PageAura"
+msgid "Power states"
+msgstr "Güç durumları"
+
+#: rog-control-center/ui/pages/aura.slint
+msgctxt "PageAura"
+msgid "No lighting effects reported by the daemon"
+msgstr "Servis hiçbir ışık efekti bildirmedi"
+
+#: rog-control-center/ui/pages/aura.slint
+msgctxt "AuraZonePower"
+msgid "Boot"
+msgstr "Açılış"
+
+#: rog-control-center/ui/pages/aura.slint
+msgctxt "AuraZonePower"
+msgid "Awake"
+msgstr "Uyanık"
+
+#: rog-control-center/ui/pages/aura.slint
+msgctxt "AuraZonePower"
+msgid "Sleep"
+msgstr "Uyku"
+
+#: rog-control-center/ui/pages/aura.slint
+msgctxt "AuraZonePower"
+msgid "Shutdown"
+msgstr "Kapanma"
+
+#: rog-control-center/ui/pages/aura.slint
+msgctxt "AuraZonePower"
+msgid "Backlight is on while the laptop starts up"
+msgstr "Dizüstü başlarken ışık yanar"
+
+#: rog-control-center/ui/pages/aura.slint
+msgctxt "AuraZonePower"
+msgid "Backlight is on while the laptop is running"
+msgstr "Dizüstü çalışırken ışık yanar"
+
+#: rog-control-center/ui/pages/aura.slint
+msgctxt "AuraZonePower"
+msgid "Backlight stays on while the laptop sleeps"
+msgstr "Dizüstü uykudayken ışık yanık kalır"
+
+#: rog-control-center/ui/pages/aura.slint
+msgctxt "AuraZonePower"
+msgid "Backlight stays on after the laptop shuts down"
+msgstr "Dizüstü kapandıktan sonra ışık yanık kalır"
+
+#: rog-control-center/ui/pages/aura.slint
+msgctxt "Colour picker"
+msgid "Hue"
+msgstr "Ton"
+
+#: rog-control-center/ui/pages/aura.slint
+msgctxt "Colour picker"
+msgid "Saturation"
+msgstr "Doygunluk"
+
+#: rog-control-center/ui/pages/aura.slint
+msgctxt "Colour picker"
+msgid "Brightness"
+msgstr "Parlaklık"
