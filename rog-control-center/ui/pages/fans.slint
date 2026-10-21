@@ -1,253 +1,92 @@
-import { Palette, TabWidget, Button, CheckBox } from "std-widgets.slint";
+import { Button } from "std-widgets.slint";
 import { Graph, Node } from "../widgets/graph.slint";
-import { SystemToggle } from "../widgets/common.slint";
+import { Theme } from "../theme.slint";
+import { Card, SegmentedControl, ToggleRow } from "../widgets/kit.slint";
 import { Profile, FanType, FanPageData } from "../types/fan_types.slint";
 
-component FanTab inherits Rectangle {
-    in-out property <bool> enabled: false;
-    in-out property <bool> tab_enabled: true;
-    in property <Profile> profile;
-    in property <FanType> fan_type;
-    callback apply();
-    callback cancel();
-    callback default();
-    callback toggled();
-    in property <string> title;
-    in-out property <[Node]> nodes;
+export component PageFans inherits Rectangle {
+    // 0 Quiet, 1 Balanced, 2 Performance (matches FanPageData helpers)
+    in-out property <int> profile-index: 1;
+    in-out property <int> fan-index: 0;
+    property <Profile> profile: profile-index == 0 ? Profile.Quiet : profile-index == 1 ? Profile.Balanced : Profile.Performance;
+    property <FanType> fan-type: fan-index == 0 ? FanType.CPU : fan-index == 1 ? FanType.GPU : FanType.Middle;
+    property <bool> fan-available: fan-index == 0 ? FanPageData.cpu_fan_available : fan-index == 1 ? FanPageData.gpu_fan_available : FanPageData.mid_fan_available;
+    property <bool> use-custom: FanPageData.enabled_for(profile-index, fan-index);
+    property <[Node]> nodes: FanPageData.nodes_for(profile-index, fan-index);
+
+    function apply() {
+        FanPageData.set_fan_data(root.fan-type, root.profile, FanPageData.enabled_for(root.profile-index, root.fan-index), FanPageData.nodes_for(root.profile-index, root.fan-index));
+    }
+
+    background: Theme.window-bg;
 
     VerticalLayout {
-        padding: 5px;
-        HorizontalLayout {
-            if root.tab_enabled: Graph {
-                nodes <=> root.nodes;
+        padding: Theme.pad;
+        spacing: Theme.gap;
+
+        SegmentedControl {
+            model: [@tr("Quiet"), @tr("Balanced"), @tr("Performance")];
+            current-index <=> root.profile-index;
+        }
+
+        SegmentedControl {
+            model: root.fan-index == 2 || FanPageData.mid_fan_available ? [@tr("CPU"), @tr("GPU"), @tr("Mid")] : [@tr("CPU"), @tr("GPU")];
+            current-index <=> root.fan-index;
+        }
+
+        Card {
+            title: @tr("Fan curve");
+            vertical-stretch: 1;
+            min-height: 240px;
+
+            if root.fan-available: Graph {
+                nodes: root.nodes;
+                editable: root.use-custom;
+                clamp-point(nodes, idx, node) => {
+                    FanPageData.clamp_point(nodes, idx, node)
+                }
+                moved(idx, node) => {
+                    FanPageData.set_node_for(root.profile-index, root.fan-index, idx, node);
+                }
             }
-            if !root.tab_enabled: Rectangle {
+            if !root.fan-available: Rectangle {
                 Text {
-                    font-size: 16px;
-                    text: @tr("This fan is not avilable on this machine");
+                    text: @tr("This fan is not available on this machine");
+                    color: Theme.text-secondary;
+                    font-size: Theme.font-body;
                 }
             }
         }
 
-        Rectangle {
-            background: Palette.border;
-            height: 1px;
-        }
-
-        HorizontalLayout {
-            alignment: LayoutAlignment.end;
-            spacing: 10px;
-            padding: 10px;
-            CheckBox {
-                text: @tr("Enabled");
-                checked <=> root.enabled;
-                enabled <=> root.tab_enabled;
-                toggled => {
-                    root.toggled();
-                }
-            }
-
-            Button {
-                text: @tr("Apply");
-                enabled <=> root.tab_enabled;
-                clicked => {
+        Card {
+            ToggleRow {
+                title: @tr("Use custom curve");
+                hint: root.use-custom ? @tr("Drag the points to shape the curve, then apply.") : @tr("Off: the firmware default curve is used.");
+                enabled: root.fan-available;
+                checked: root.use-custom;
+                toggled(value) => {
+                    FanPageData.set_enabled_for(root.profile-index, root.fan-index, value);
                     root.apply();
                 }
             }
 
-            Button {
-                text: @tr("Cancel");
-                enabled <=> root.tab_enabled;
-                clicked => {
-                    root.cancel()
-                }
-            }
-
-            Button {
-                text: @tr("Factory Default (all fans)");
-                enabled <=> root.tab_enabled;
-                clicked => {
-                    root.default();
-                }
-            }
-        }
-    }
-}
-
-export component PageFans inherits VerticalLayout {
-    TabWidget {
-        Tab {
-            title: @tr("Balanced");
-            TabWidget {
-                Tab {
-                    title: @tr("CPU");
-                    FanTab {
-                        tab_enabled <=> FanPageData.cpu_fan_available;
-                        enabled <=> FanPageData.balanced_cpu_enabled;
-                        nodes <=> FanPageData.balanced_cpu;
-                        apply => {
-                            FanPageData.set_fan_data(FanType.CPU, Profile.Balanced, self.enabled, FanPageData.balanced_cpu);
-                        }
-                        toggled => {
-                            FanPageData.set_fan_data(FanType.CPU, Profile.Balanced, self.enabled, FanPageData.balanced_cpu);
-                        }
-                        default => {
-                            FanPageData.set_profile_default(Profile.Balanced);
-                        }
+            HorizontalLayout {
+                alignment: end;
+                spacing: Theme.gap;
+                Button {
+                    text: @tr("Reset to default");
+                    enabled: root.fan-available;
+                    clicked => {
+                        FanPageData.set_profile_default(root.profile);
                     }
                 }
 
-                Tab {
-                    title: @tr("Mid");
-                    FanTab {
-                        tab_enabled <=> FanPageData.mid_fan_available;
-                        enabled <=> FanPageData.balanced_mid_enabled;
-                        nodes <=> FanPageData.balanced_mid;
-                        apply => {
-                            FanPageData.set_fan_data(FanType.Middle, Profile.Balanced, self.enabled, FanPageData.balanced_mid);
-                        }
-                        toggled => {
-                            FanPageData.set_fan_data(FanType.Middle, Profile.Balanced, self.enabled, FanPageData.balanced_mid);
-                        }
-                        default => {
-                            FanPageData.set_profile_default(Profile.Balanced);
-                        }
-                    }
-                }
-
-                Tab {
-                    title: @tr("GPU");
-                    FanTab {
-                        tab_enabled <=> FanPageData.gpu_fan_available;
-                        enabled <=> FanPageData.balanced_gpu_enabled;
-                        nodes <=> FanPageData.balanced_gpu;
-                        apply => {
-                            FanPageData.set_fan_data(FanType.GPU, Profile.Balanced, self.enabled, FanPageData.balanced_gpu);
-                        }
-                        toggled => {
-                            FanPageData.set_fan_data(FanType.GPU, Profile.Balanced, self.enabled, FanPageData.balanced_gpu);
-                        }
-                        default => {
-                            FanPageData.set_profile_default(Profile.Balanced);
-                        }
-                    }
-                }
-            }
-        }
-
-        Tab {
-            title: @tr("Performance");
-            TabWidget {
-                Tab {
-                    title: @tr("CPU");
-                    FanTab {
-                        tab_enabled <=> FanPageData.cpu_fan_available;
-                        enabled <=> FanPageData.performance_cpu_enabled;
-                        nodes <=> FanPageData.performance_cpu;
-                        apply => {
-                            FanPageData.set_fan_data(FanType.CPU, Profile.Performance, self.enabled, FanPageData.performance_cpu);
-                        }
-                        toggled => {
-                            FanPageData.set_fan_data(FanType.CPU, Profile.Performance, self.enabled, FanPageData.performance_cpu);
-                        }
-                        default => {
-                            FanPageData.set_profile_default(Profile.Performance);
-                        }
-                    }
-                }
-
-                Tab {
-                    title: @tr("Mid");
-                    FanTab {
-                        tab_enabled <=> FanPageData.mid_fan_available;
-                        enabled <=> FanPageData.performance_mid_enabled;
-                        nodes <=> FanPageData.performance_mid;
-                        apply => {
-                            FanPageData.set_fan_data(FanType.Middle, Profile.Performance, self.enabled, FanPageData.performance_mid);
-                        }
-                        toggled => {
-                            FanPageData.set_fan_data(FanType.Middle, Profile.Performance, self.enabled, FanPageData.performance_mid);
-                        }
-                        default => {
-                            FanPageData.set_profile_default(Profile.Performance);
-                        }
-                    }
-                }
-
-                Tab {
-                    title: @tr("GPU");
-                    FanTab {
-                        tab_enabled <=> FanPageData.gpu_fan_available;
-                        enabled <=> FanPageData.performance_gpu_enabled;
-                        nodes <=> FanPageData.performance_gpu;
-                        apply => {
-                            FanPageData.set_fan_data(FanType.GPU, Profile.Performance, self.enabled, FanPageData.performance_gpu);
-                        }
-                        toggled => {
-                            FanPageData.set_fan_data(FanType.GPU, Profile.Performance, self.enabled, FanPageData.performance_gpu);
-                        }
-                        default => {
-                            FanPageData.set_profile_default(Profile.Performance);
-                        }
-                    }
-                }
-            }
-        }
-
-        Tab {
-            title: @tr("Quiet");
-            TabWidget {
-                Tab {
-                    title: @tr("CPU");
-                    FanTab {
-                        tab_enabled <=> FanPageData.cpu_fan_available;
-                        enabled <=> FanPageData.quiet_cpu_enabled;
-                        nodes <=> FanPageData.quiet_cpu;
-                        apply => {
-                            FanPageData.set_fan_data(FanType.CPU, Profile.Quiet, self.enabled, FanPageData.quiet_cpu);
-                        }
-                        toggled => {
-                            FanPageData.set_fan_data(FanType.CPU, Profile.Quiet, self.enabled, FanPageData.quiet_cpu);
-                        }
-                        default => {
-                            FanPageData.set_profile_default(Profile.Quiet);
-                        }
-                    }
-                }
-
-                Tab {
-                    title: @tr("Mid");
-                    FanTab {
-                        tab_enabled <=> FanPageData.mid_fan_available;
-                        enabled <=> FanPageData.quiet_mid_enabled;
-                        nodes <=> FanPageData.quiet_mid;
-                        apply => {
-                            FanPageData.set_fan_data(FanType.Middle, Profile.Quiet, self.enabled, FanPageData.quiet_mid);
-                        }
-                        toggled => {
-                            FanPageData.set_fan_data(FanType.Middle, Profile.Quiet, self.enabled, FanPageData.quiet_mid);
-                        }
-                        default => {
-                            FanPageData.set_profile_default(Profile.Quiet);
-                        }
-                    }
-                }
-
-                Tab {
-                    title: @tr("GPU");
-                    FanTab {
-                        tab_enabled <=> FanPageData.gpu_fan_available;
-                        enabled <=> FanPageData.quiet_gpu_enabled;
-                        nodes <=> FanPageData.quiet_gpu;
-                        apply => {
-                            FanPageData.set_fan_data(FanType.GPU, Profile.Quiet, self.enabled, FanPageData.quiet_gpu);
-                        }
-                        toggled => {
-                            FanPageData.set_fan_data(FanType.GPU, Profile.Quiet, self.enabled, FanPageData.quiet_gpu);
-                        }
-                        default => {
-                            FanPageData.set_profile_default(Profile.Quiet);
-                        }
+                Button {
+                    text: @tr("Apply");
+                    primary: true;
+                    enabled: root.fan-available && root.use-custom;
+                    clicked => {
+                        root.apply();
                     }
                 }
             }
