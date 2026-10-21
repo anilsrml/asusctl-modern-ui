@@ -182,10 +182,7 @@ fn main() -> Result<()> {
 
     let locale_dir = rog_control_center::locale::resolve_from_env();
     log::debug!("Translations directory: {locale_dir:?}");
-    slint::private_unstable_api::init_translations(
-        rog_control_center::locale::GETTEXT_DOMAIN,
-        locale_dir.unwrap_or_else(|| "/usr/share/locale".into()),
-    );
+    slint::init_translations!(locale_dir.unwrap_or_else(|| "/usr/share/locale".into()));
 
     // Prefetch supported Aura modes once at startup and move into the
     // spawned UI thread so the UI uses a stable, immutable list.

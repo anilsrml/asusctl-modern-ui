@@ -26,7 +26,7 @@ Installs to `~/.local/bin`, `~/.local/share/{applications,icons,locale}`. Launch
 Needs Rust (see `rust-toolchain.toml`), gettext (`msgfmt`) and the usual Slint/Wayland/X11 dev libraries.
 
 ```sh
-cargo build --release -p rog-control-center    # target/release/rog-control-center-modern
+cargo build --release -p rog-control-center-modern    # target/release/rog-control-center-modern
 packaging/make-release.sh                      # tarball in dist/
 ```
 
@@ -64,7 +64,7 @@ cd asusctl-modern-ui-<sürüm>-x86_64-linux
 ### Kaynaktan derleme
 
 ```sh
-cargo build --release -p rog-control-center
+cargo build --release -p rog-control-center-modern
 packaging/make-release.sh
 ```
 

@@ -1,5 +1,5 @@
 [package]
-name = "rog-control-center"
+name = "rog-control-center-modern"
 license.workspace = true
 version.workspace = true
 readme.workspace = true
@@ -7,6 +7,10 @@ authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
 edition.workspace = true
+
+[lib]
+name = "rog_control_center"
+path = "src/lib.rs"
 
 [[bin]]
 name = "rog-control-center-modern"

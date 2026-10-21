@@ -4688,7 +4688,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "rog-control-center"
+name = "rog-control-center-modern"
 version = "6.5.0"
 dependencies = [
  "argh",

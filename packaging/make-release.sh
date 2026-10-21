@@ -12,7 +12,7 @@ VERSION="$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)"
 NAME="asusctl-modern-ui-$VERSION-x86_64-linux"
 STAGE="$ROOT/dist/$NAME"
 
-cargo build -j 4 --release -p rog-control-center
+cargo build -j 4 --release -p rog-control-center-modern
 
 rm -rf "$STAGE"
 mkdir -p "$STAGE/bin" "$STAGE/share/applications" "$STAGE/share/icons/hicolor/512x512/apps"

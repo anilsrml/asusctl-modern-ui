@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 /// gettext domain of this app. Distinct from upstream's `rog-control-center`
 /// so that upstream's catalog is never picked up.
-pub const GETTEXT_DOMAIN: &str = "rog-control-center-modern";
+pub const GETTEXT_DOMAIN: &str = env!("CARGO_PKG_NAME");
 
 /// Pick the locale directory to bind.
 ///
@@ -75,6 +75,12 @@ pub fn resolve_from_env() -> Option<PathBuf> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn domain_matches_the_one_slint_generated_code_translates_with() {
+        // slint-build passes CARGO_PKG_NAME as the translation domain of every @tr
+        assert_eq!(GETTEXT_DOMAIN, env!("CARGO_PKG_NAME"));
+    }
 
     fn dirs(list: &[&str]) -> Vec<PathBuf> {
         list.iter().map(PathBuf::from).collect()

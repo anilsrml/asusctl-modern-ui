@@ -2,7 +2,8 @@ use std::path::PathBuf;
 
 use slint_build::CompilerConfiguration;
 
-const GETTEXT_DOMAIN: &str = "rog-control-center-modern";
+// Must match the domain slint-build gives every @tr (CARGO_PKG_NAME)
+const GETTEXT_DOMAIN: &str = env!("CARGO_PKG_NAME");
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     compile_locales()?;
