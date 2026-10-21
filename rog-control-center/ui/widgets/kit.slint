@@ -1,0 +1,202 @@
+import { Theme } from "../theme.slint";
+
+// Bordered container that groups related settings
+export component Card inherits Rectangle {
+    in property <string> title;
+    background: Theme.surface-raised;
+    border-color: Theme.border;
+    border-width: 1px;
+    border-radius: Theme.radius-card;
+
+    VerticalLayout {
+        padding: Theme.pad;
+        spacing: 8px;
+        if root.title != "": Text {
+            text: root.title;
+            color: Theme.text;
+            font-size: Theme.font-title;
+            font-weight: 500;
+        }
+        @children
+    }
+}
+
+// Small read-only value with a label, for live readings
+export component MetricTile inherits Rectangle {
+    in property <string> label;
+    in property <string> value;
+    background: Theme.surface;
+    border-radius: Theme.radius;
+    min-height: 62px;
+
+    VerticalLayout {
+        padding: 12px;
+        spacing: 2px;
+        alignment: center;
+        Text {
+            text: root.label;
+            color: Theme.text-secondary;
+            font-size: Theme.font-small;
+        }
+        Text {
+            text: root.value;
+            color: Theme.text;
+            font-size: Theme.font-metric;
+            font-weight: 500;
+        }
+    }
+}
+
+component Segment inherits Rectangle {
+    in property <string> text;
+    in property <bool> selected;
+    callback clicked <=> touch.clicked;
+    border-radius: Theme.radius - 2px;
+    background: selected ? Theme.surface-raised : touch.has-hover ? Theme.border : transparent;
+    border-color: selected ? Theme.border-strong : transparent;
+    border-width: selected ? 1px : 0px;
+    min-height: 34px;
+    animate background { duration: 120ms; }
+
+    Text {
+        text: root.text;
+        color: root.selected ? Theme.text : Theme.text-secondary;
+        font-size: Theme.font-body;
+        font-weight: root.selected ? 500 : 400;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+
+    touch := TouchArea { }
+}
+
+// One-of-many picker, used for profiles and modes
+export component SegmentedControl inherits Rectangle {
+    in property <[string]> model;
+    in-out property <int> current-index;
+    callback selected(int);
+    background: Theme.surface;
+    border-radius: Theme.radius;
+
+    HorizontalLayout {
+        padding: 3px;
+        spacing: 3px;
+        for item[i] in root.model: Segment {
+            text: item;
+            selected: i == root.current-index;
+            clicked => {
+                if (i != root.current-index) {
+                    root.current-index = i;
+                    root.selected(i);
+                }
+            }
+        }
+    }
+}
+
+// Pill switch
+export component Toggle inherits Rectangle {
+    in-out property <bool> checked;
+    in property <bool> enabled: true;
+    callback toggled(bool);
+    width: 36px;
+    height: 20px;
+    border-radius: self.height / 2;
+    background: !root.enabled ? Theme.border : root.checked ? Theme.accent : Theme.border-strong;
+    animate background { duration: 120ms; }
+
+    knob := Rectangle {
+        width: 16px;
+        height: 16px;
+        y: 2px;
+        x: root.checked ? root.width - self.width - 2px : 2px;
+        border-radius: self.height / 2;
+        background: #ffffff;
+        animate x { duration: 120ms; }
+    }
+
+    TouchArea {
+        enabled: root.enabled;
+        clicked => {
+            root.checked = !root.checked;
+            root.toggled(root.checked);
+        }
+    }
+}
+
+// A setting with a title, a one-line hint and a switch
+export component ToggleRow inherits Rectangle {
+    in property <string> title;
+    in property <string> hint;
+    in property <bool> enabled: true;
+    in-out property <bool> checked <=> toggle.checked;
+    callback toggled(bool);
+    min-height: 44px;
+
+    HorizontalLayout {
+        spacing: 12px;
+        alignment: stretch;
+        VerticalLayout {
+            alignment: center;
+            spacing: 2px;
+            Text {
+                text: root.title;
+                color: root.enabled ? Theme.text : Theme.text-muted;
+                font-size: Theme.font-body;
+                wrap: word-wrap;
+            }
+            if root.hint != "": Text {
+                text: root.hint;
+                color: Theme.text-secondary;
+                font-size: Theme.font-small;
+                wrap: word-wrap;
+            }
+        }
+        VerticalLayout {
+            alignment: center;
+            toggle := Toggle {
+                enabled: root.enabled;
+                toggled(value) => {
+                    root.toggled(value);
+                }
+            }
+        }
+    }
+}
+
+// Success or error message shown after applying a setting
+export component Toast inherits Rectangle {
+    in property <string> text;
+    in property <bool> is-error;
+    callback dismissed();
+    background: root.is-error ? Theme.danger-bg : Theme.success-bg;
+    border-radius: Theme.radius;
+    min-height: 38px;
+
+    HorizontalLayout {
+        padding-left: 12px;
+        padding-right: 12px;
+        spacing: 8px;
+        Text {
+            text: root.is-error ? "✕" : "✓";
+            color: root.is-error ? Theme.danger-text : Theme.success-text;
+            font-size: Theme.font-body;
+            font-weight: 500;
+            vertical-alignment: center;
+        }
+        Text {
+            text: root.text;
+            color: root.is-error ? Theme.danger-text : Theme.success-text;
+            font-size: Theme.font-body;
+            vertical-alignment: center;
+            horizontal-stretch: 1;
+            overflow: elide;
+        }
+    }
+
+    TouchArea {
+        clicked => {
+            root.dismissed();
+        }
+    }
+}

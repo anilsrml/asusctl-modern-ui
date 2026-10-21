@@ -1,0 +1,37 @@
+import { Palette } from "std-widgets.slint";
+
+// Single source of colours, spacing and radii for the whole UI.
+// Follows the system light/dark preference through the fluent Palette.
+export global Theme {
+    out property <bool> dark: Palette.color-scheme == ColorScheme.dark;
+
+    out property <color> window-bg: dark ? #1b1c1f : #ffffff;
+    out property <color> surface: dark ? #232428 : #f4f4f2;
+    out property <color> surface-raised: dark ? #2b2c31 : #ffffff;
+    out property <color> border: dark ? #ffffff14 : #0000001a;
+    out property <color> border-strong: dark ? #ffffff29 : #00000033;
+
+    out property <color> text: dark ? #ececec : #1d1d1f;
+    out property <color> text-secondary: dark ? #a0a0a6 : #5f5e5a;
+    out property <color> text-muted: dark ? #77777d : #888780;
+
+    out property <color> accent: dark ? #378add : #185fa5;
+    out property <color> accent-bg: dark ? #378add2e : #e6f1fb;
+    out property <color> accent-text: dark ? #85b7eb : #0c447c;
+    out property <color> on-accent: #ffffff;
+
+    out property <color> success-bg: dark ? #27500a : #eaf3de;
+    out property <color> success-text: dark ? #c0dd97 : #27500a;
+    out property <color> danger-bg: dark ? #791f1f : #fcebeb;
+    out property <color> danger-text: dark ? #f7c1c1 : #791f1f;
+
+    out property <length> radius: 8px;
+    out property <length> radius-card: 12px;
+    out property <length> gap: 10px;
+    out property <length> pad: 14px;
+
+    out property <length> font-small: 12px;
+    out property <length> font-body: 13px;
+    out property <length> font-title: 15px;
+    out property <length> font-metric: 20px;
+}

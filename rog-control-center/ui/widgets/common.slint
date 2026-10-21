@@ -1,9 +1,11 @@
+import { Theme } from "../theme.slint";
 import { Palette, VerticalBox , StandardButton, Button, HorizontalBox, ComboBox, Switch, Slider} from "std-widgets.slint";
 
 export component RogItem inherits Rectangle {
-    border-color: Palette.border;
+    background: Theme.surface-raised;
+    border-color: Theme.border;
     border-width: 1px;
-    border-radius: 2px;
+    border-radius: Theme.radius;
     min-height: 44px;
     max-height: 44px;
 }

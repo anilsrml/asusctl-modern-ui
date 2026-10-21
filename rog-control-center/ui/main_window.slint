@@ -11,6 +11,8 @@ import { PageAura } from "pages/aura.slint";
 import { PageGPU, GPUPageData } from "pages/gpu.slint";
 import { PageBattery } from "pages/battery.slint";
 import { Node } from "widgets/graph.slint";
+import { Theme } from "theme.slint";
+import { Toast } from "widgets/kit.slint";
 export { Node }
 import { FanPageData, FanType, Profile } from "types/fan_types.slint";
 export { FanPageData, FanType, Profile }
@@ -43,11 +45,13 @@ export component MainWindow inherits Window {
     in property <bool> is_tuf: false;
     private property <bool> fade_cover;
     private property <bool> toast: false;
-    private property <string> toast_text: "I show when something is waiting";
-    callback show_toast(string);
-    show_toast(text) => {
+    private property <string> toast_text: "";
+    private property <bool> toast_is_error: false;
+    callback show_toast(string, bool);
+    show_toast(text, is_error) => {
         toast = text != "";
         toast_text = text;
+        toast_is_error = is_error;
     }
     callback clear_toast_if_matches(string);
     clear_toast_if_matches(text) => {
@@ -69,7 +73,7 @@ export component MainWindow inherits Window {
     }
     min-height: AppSize.height;
     min-width: AppSize.width;
-    background: Palette.alternate-background;
+    background: Theme.window-bg;
 
     HorizontalLayout {
         padding: 0px;
@@ -91,18 +95,24 @@ export component MainWindow inherits Window {
                 is_tuf: root.is_tuf;
             }
 
-            Button {
-                height: 40px;
+            Rectangle {
                 width: side-bar.width;
-                text: @tr("Quit App");
-                clicked() => {
-                    root.exit-app();
+                height: 54px;
+                background: Theme.surface;
+                Button {
+                    x: 10px;
+                    width: parent.width - 20px;
+                    height: 34px;
+                    text: @tr("Quit App");
+                    clicked() => {
+                        root.exit-app();
+                    }
                 }
             }
         }
 
         Rectangle {
-            background: Palette.background;
+            background: Theme.window-bg;
             if(side-bar.current-item == 0): page := PageSystem {
                 width: root.width - side-bar.width;
                 height: root.height + 12px;
@@ -156,30 +166,14 @@ export component MainWindow inherits Window {
                 visible: side-bar.current-item == 8;
             }
 
-            if toast: Rectangle {
-                x: 0px;
-                y: root.height - self.height;
-                width: root.width - side-bar.width;
-                height: 40px;
-                opacity: 1.0;
-                background: Palette.selection-background;
-                clip: true;
-                TouchArea {
-                    height: 100%;
-                    width: 100%;
-                    clicked => {
-                        toast = false;
-                    }
-                }
-
-                Rectangle {
-                    height: 100%;
-                    width: 100%;
-                    background: Palette.control-background;
-                    Text {
-                        color: Palette.control-foreground;
-                        text: root.toast_text;
-                    }
+            if toast: Toast {
+                x: 16px;
+                y: root.height - self.height - 16px;
+                width: root.width - side-bar.width - 32px;
+                text: root.toast_text;
+                is-error: root.toast_is_error;
+                dismissed => {
+                    toast = false;
                 }
             }
         }
