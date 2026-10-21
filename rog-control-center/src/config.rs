@@ -212,7 +212,7 @@ mod tests {
         update_autostart_with_dir(true, true, Some(&path));
         assert!(file_path.exists());
         let content = std::fs::read_to_string(&file_path).unwrap();
-        assert!(content.contains("Name=ROG Control (Modern)"));
+        assert!(content.contains("Name=ROG Control\n"));
         assert!(content.contains("Exec=rog-control-center-modern --autostart --background"));
 
         // Test disabling

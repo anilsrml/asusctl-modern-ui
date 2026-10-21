@@ -25,7 +25,7 @@ pub const APP_ID: &str = "io.github.anilsrml.RogControlModern";
 pub const BIN_NAME: &str = "rog-control-center-modern";
 /// Icon theme name of the app icon.
 pub const APP_ICON_NAME: &str = "rog-control-center-modern";
-pub const WINDOW_TITLE: &str = "ROG Control (Modern)";
+pub const WINDOW_TITLE: &str = "ROG Control";
 
 pub fn print_versions() {
     println!("App and daemon versions:");

@@ -1,4 +1,4 @@
-# ROG Control (Modern)
+# ROG Control
 
 [![Release](https://img.shields.io/github/v/release/anilsrml/asusctl-modern-ui)](https://github.com/anilsrml/asusctl-modern-ui/releases/latest)
 [![License: MPL-2.0](https://img.shields.io/badge/license-MPL--2.0-blue)](LICENSE)
@@ -32,7 +32,17 @@ A modern Slint-based GUI for [asusd](https://github.com/OpenGamingCollective/asu
 - Installs per user without sudo and runs side by side with upstream `rog-control-center`
 - `--page fans` (or overview, keyboard, gpu, battery, …) opens straight on a page
 
-### Install from release
+### Install
+
+Requires `asusd` (from asusctl) to be installed and running. One command, no sudo:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/anilsrml/asusctl-modern-ui/main/packaging/get.sh | bash
+```
+
+It downloads the latest release, checks its sha256, installs to `~/.local` and puts a "ROG Control" shortcut on your Desktop and in the app menu. Run the same command again to update. Without the Desktop shortcut: `... | bash -s -- --no-desktop-shortcut`.
+
+Manual install from the [release page](https://github.com/anilsrml/asusctl-modern-ui/releases/latest):
 
 ```sh
 tar xf asusctl-modern-ui-<version>-x86_64-linux.tar.gz
@@ -40,8 +50,6 @@ cd asusctl-modern-ui-<version>-x86_64-linux
 ./install.sh            # user-local, no sudo
 ./install.sh --uninstall
 ```
-
-Installs to `~/.local/bin`, `~/.local/share/{applications,icons,locale}`. Launch "ROG Control (Modern)" from the app menu or run `rog-control-center-modern`.
 
 ### Build from source
 
@@ -74,7 +82,17 @@ ASUS ROG / TUF dizüstü bilgisayarlarda [asusd](https://github.com/OpenGamingCo
 - [OpenGamingCollective/asusctl](https://github.com/OpenGamingCollective/asusctl) (MPL-2.0) tabanlıdır. Servis (daemon) **değiştirilmemiştir** ve **gereklidir**: önce `asusd` kurulu ve çalışır olmalıdır.
 - ASUS ile bağlantılı değildir, ASUS tarafından onaylanmamıştır.
 
-### Sürümden kurulum
+### Kurulum
+
+`asusd` (asusctl) kurulu ve çalışıyor olmalı. Tek komut, sudo gerekmez:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/anilsrml/asusctl-modern-ui/main/packaging/get.sh | bash
+```
+
+En son sürümü indirir, sha256 ile doğrular, `~/.local` altına kurar ve masaüstüne "ROG Control" kısayolu ekler. Güncellemek için aynı komutu tekrar çalıştırın.
+
+Elle kurulum:
 
 ```sh
 tar xf asusctl-modern-ui-<sürüm>-x86_64-linux.tar.gz

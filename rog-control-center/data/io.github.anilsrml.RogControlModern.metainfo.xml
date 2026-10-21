@@ -2,7 +2,7 @@
 <component type="desktop-application">
   <id>io.github.anilsrml.RogControlModern</id>
   
-  <name>ROG Control (Modern)</name>
+  <name>ROG Control</name>
   <summary>A one-stop-shop GUI tool for asusd/asusctl</summary>
   <icon type="remote">https://github.com/anilsrml/asusctl-modern-ui/blob/main/rog-control-center/data/rog-control-center-modern.png</icon>
   

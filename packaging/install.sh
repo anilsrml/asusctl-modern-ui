@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# User-local installer for ROG Control (Modern). No sudo needed.
-# Usage: ./install.sh [--uninstall]
+# User-local installer for ROG Control. No sudo needed.
+# Usage: ./install.sh [--no-desktop-shortcut] | --uninstall
 # Run from the extracted release tarball (or from packaging/ of a built tree
 # with the same layout: bin/, share/).
 set -euo pipefail
@@ -15,6 +15,9 @@ BIN_DIR="$HOME/.local/bin"
 APPS_DIR="$DATA_HOME/applications"
 ICON_DIR="$DATA_HOME/icons/hicolor/512x512/apps"
 LOCALE_DIR="$DATA_HOME/locale"
+# The user's Desktop folder, if they have one; never created here
+DESKTOP_DIR="$(XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}" xdg-user-dir DESKTOP 2>/dev/null || echo "$HOME/Desktop")"
+[[ "$DESKTOP_DIR" == "$HOME" ]] && DESKTOP_DIR=""
 
 # PIDs of this user's processes running the installed binary, including a
 # copy whose file was already replaced ("(deleted)")
@@ -38,7 +41,7 @@ stop_running() {
         sleep 0.3
     done
     [[ -n "$(installed_pids)" ]] && kill -9 $(installed_pids) 2>/dev/null || true
-    echo "Stopped the running ROG Control (Modern)."
+    echo "Stopped the running ROG Control."
     return 0
 }
 
@@ -47,18 +50,22 @@ uninstall() {
     rm -f "$BIN_DIR/$BIN" \
         "$APPS_DIR/$APP_ID.desktop" \
         "$ICON_DIR/$BIN.png"
+    [[ -n "$DESKTOP_DIR" ]] && rm -f "$DESKTOP_DIR/$APP_ID.desktop"
     rm -f "$LOCALE_DIR"/*/LC_MESSAGES/"$DOMAIN".mo
     rm -f "$HOME/.config/autostart/$APP_ID.desktop"
     command -v update-desktop-database >/dev/null && update-desktop-database "$APPS_DIR" 2>/dev/null || true
     command -v gtk-update-icon-cache >/dev/null && gtk-update-icon-cache -q -t "$DATA_HOME/icons/hicolor" 2>/dev/null || true
-    echo "Uninstalled ROG Control (Modern). Settings in ~/.config/rog-modern/ were kept."
+    echo "Uninstalled ROG Control. Settings in ~/.config/rog-modern/ were kept."
 }
 
+desktop_shortcut=1
 if [[ "${1:-}" == "--uninstall" ]]; then
     uninstall
     exit 0
+elif [[ "${1:-}" == "--no-desktop-shortcut" ]]; then
+    desktop_shortcut=0
 elif [[ $# -gt 0 ]]; then
-    echo "usage: $0 [--uninstall]" >&2
+    echo "usage: $0 [--no-desktop-shortcut] | --uninstall" >&2
     exit 2
 fi
 
@@ -71,6 +78,11 @@ install -Dm755 "$HERE/bin/$BIN" "$BIN_DIR/$BIN"
 install -Dm644 "$HERE/share/applications/$APP_ID.desktop" "$APPS_DIR/$APP_ID.desktop"
 # make the launcher independent of $PATH
 sed -i "s|^Exec=.*|Exec=$BIN_DIR/$BIN|" "$APPS_DIR/$APP_ID.desktop"
+if [[ $desktop_shortcut == 1 && -n "$DESKTOP_DIR" && -d "$DESKTOP_DIR" ]]; then
+    { echo '#!/usr/bin/env xdg-open'; cat "$APPS_DIR/$APP_ID.desktop"; } > "$DESKTOP_DIR/$APP_ID.desktop"
+    chmod +x "$DESKTOP_DIR/$APP_ID.desktop"
+    echo "Added a shortcut to $DESKTOP_DIR"
+fi
 for icon in "$HERE"/share/icons/hicolor/512x512/apps/*.png; do
     install -Dm644 "$icon" "$ICON_DIR/$(basename "$icon")"
 done
