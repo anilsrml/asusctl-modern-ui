@@ -9,6 +9,7 @@ pub use slint;
 pub mod cli_options;
 pub mod config;
 pub mod error;
+pub mod locale;
 pub mod notify;
 pub mod shortcuts;
 pub mod tray;
@@ -18,8 +19,13 @@ pub mod window;
 pub mod zbus_proxies;
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
-pub const APP_ID: &str = "org.opengamingcollective.rog-control-center";
-pub const APP_ICON_PATH: &str = "/usr/share/icons/hicolor/512x512/apps/rog-control-center.png";
+/// Own identity so this app coexists with upstream `rog-control-center`.
+pub const APP_ID: &str = "io.github.anilsrml.RogControlModern";
+/// Binary name, also used for autostart `Exec=`.
+pub const BIN_NAME: &str = "rog-control-center-modern";
+/// Icon theme name of the app icon.
+pub const APP_ICON_NAME: &str = "rog-control-center-modern";
+pub const WINDOW_TITLE: &str = "ROG Control (Modern)";
 
 pub fn print_versions() {
     println!("App and daemon versions:");

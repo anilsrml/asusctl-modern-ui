@@ -3,9 +3,9 @@ use std::fs::create_dir_all;
 use config_traits::{StdConfig, StdConfigLoad1};
 use serde::{Deserialize, Serialize};
 
-use crate::{APP_ID, notify::EnabledNotifications};
+use crate::{APP_ICON_NAME, APP_ID, BIN_NAME, WINDOW_TITLE, notify::EnabledNotifications};
 
-const CFG_DIR: &str = "rog";
+const CFG_DIR: &str = "rog-modern";
 const CFG_FILE_NAME: &str = "rog-control-center.cfg";
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -114,8 +114,8 @@ pub fn is_autostart_in_background() -> bool {
     if let Some(path) = path
         && let Ok(content) = std::fs::read_to_string(path)
     {
-        return content.contains("Exec=rog-control-center --autostart --background")
-            || content.contains("Exec=rog-control-center --background");
+        return content.contains(&format!("Exec={BIN_NAME} --autostart --background"))
+            || content.contains(&format!("Exec={BIN_NAME} --background"));
     }
     false
 }
@@ -155,22 +155,22 @@ fn update_autostart_with_dir(
         }
 
         let exec_cmd = if in_background {
-            "rog-control-center --autostart --background"
+            format!("{BIN_NAME} --autostart --background")
         } else {
-            "rog-control-center --autostart"
+            format!("{BIN_NAME} --autostart")
         };
 
         let content = format!(
             "[Desktop Entry]\n\
                        Version=1.0\n\
                        Type=Application\n\
-                       Name=ROG Control Center\n\
+                       Name={}\n\
                        Comment=Make your ASUS ROG Laptop go Brrrrr!\n\
                        Categories=Settings;\n\
-                       Icon=rog-control-center\n\
+                       Icon={}\n\
                        Exec={}\n\
                        Terminal=false\n",
-            exec_cmd
+            WINDOW_TITLE, APP_ICON_NAME, exec_cmd
         );
 
         if let Err(e) = std::fs::write(&desktop_file, content) {
@@ -212,8 +212,8 @@ mod tests {
         update_autostart_with_dir(true, true, Some(&path));
         assert!(file_path.exists());
         let content = std::fs::read_to_string(&file_path).unwrap();
-        assert!(content.contains("Name=ROG Control Center"));
-        assert!(content.contains("Exec=rog-control-center --autostart --background"));
+        assert!(content.contains("Name=ROG Control (Modern)"));
+        assert!(content.contains("Exec=rog-control-center-modern --autostart --background"));
 
         // Test disabling
         update_autostart_with_dir(false, false, Some(&path));

@@ -180,14 +180,12 @@ fn main() -> Result<()> {
         *app_state = AppState::MainWindowShouldOpen;
     }
 
-    if std::env::var("RUST_TRANSLATIONS").is_ok() {
-        // don't care about content
-        log::debug!("---- Using local-dir translations");
-        slint::init_translations!(env!("ROGCC_TRANSLATIONS_DIR"));
-    } else {
-        log::debug!("Using system installed translations");
-        slint::init_translations!("/usr/share/locale/");
-    }
+    let locale_dir = rog_control_center::locale::resolve_from_env();
+    log::debug!("Translations directory: {locale_dir:?}");
+    slint::private_unstable_api::init_translations(
+        rog_control_center::locale::GETTEXT_DOMAIN,
+        locale_dir.unwrap_or_else(|| "/usr/share/locale".into()),
+    );
 
     // Prefetch supported Aura modes once at startup and move into the
     // spawned UI thread so the UI uses a stable, immutable list.

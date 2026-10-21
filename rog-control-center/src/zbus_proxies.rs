@@ -36,10 +36,10 @@ impl ROGCCZbus {
     }
 }
 
-pub const ZBUS_PATH: &str = "/xyz/ljones/rogcc";
-pub const ZBUS_IFACE: &str = "xyz.ljones.rogcc";
+pub const ZBUS_PATH: &str = "/io/github/anilsrml/RogControlModern";
+pub const ZBUS_IFACE: &str = "io.github.anilsrml.RogControlModern";
 
-#[interface(name = "xyz.ljones.rogcc")]
+#[interface(name = "io.github.anilsrml.RogControlModern")]
 impl ROGCCZbus {
     /// Return the device type for this Aura keyboard
     #[zbus(property)]
@@ -59,9 +59,9 @@ impl ROGCCZbus {
 }
 
 #[proxy(
-    interface = "xyz.ljones.rogcc",
-    default_service = "xyz.ljones.rogcc",
-    default_path = "/xyz/ljones/rogcc"
+    interface = "io.github.anilsrml.RogControlModern",
+    default_service = "io.github.anilsrml.RogControlModern",
+    default_path = "/io/github/anilsrml/RogControlModern"
 )]
 pub trait ROGCCZbus {
     /// EnableDisplay property

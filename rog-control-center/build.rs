@@ -2,6 +2,8 @@ use std::path::PathBuf;
 
 use slint_build::CompilerConfiguration;
 
+const GETTEXT_DOMAIN: &str = "rog-control-center-modern";
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     compile_locales()?;
     let root = env!("CARGO_MANIFEST_DIR");
@@ -22,13 +24,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-/// Compile the .po sources into gettext catalogs under `OUT_DIR`, and export
-/// that location as `ROGCC_TRANSLATIONS_DIR` for the runtime to load from.
+/// Compile the .po sources into gettext catalogs under `OUT_DIR/translations`;
+/// packaging copies them from there.
 fn compile_locales() -> Result<(), Box<dyn std::error::Error>> {
     let sources = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("translations");
     let out = PathBuf::from(std::env::var("OUT_DIR")?).join("translations");
 
-    println!("cargo:rustc-env=ROGCC_TRANSLATIONS_DIR={}/", out.display());
     // Catches locales being added or removed, not just edited
     println!("cargo:rerun-if-changed={}", sources.display());
 
@@ -46,7 +47,7 @@ fn compile_locales() -> Result<(), Box<dyn std::error::Error>> {
 
         let dir = out.join(entry.file_name()).join("LC_MESSAGES");
         std::fs::create_dir_all(&dir)?;
-        let mo = dir.join("rog-control-center.mo");
+        let mo = dir.join(format!("{}.mo", GETTEXT_DOMAIN));
 
         let status = std::process::Command::new("msgfmt")
             .arg("-o")
