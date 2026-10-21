@@ -12,7 +12,7 @@ use crate::zbus_proxies::find_iface_async;
 use crate::{GPUPageData, MainWindow};
 
 /// A selectable GPU mode, independent of which sysfs attributes back it.
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 enum GpuMode {
     Integrated, // dGPU powered off
     Hybrid,     // iGPU + dGPU (Optimus)
@@ -20,13 +20,50 @@ enum GpuMode {
 }
 
 impl GpuMode {
-    fn label(self) -> &'static str {
+    /// Stable id shared with the Slint page (which owns the translated labels).
+    fn id(self) -> i32 {
         match self {
-            GpuMode::Integrated => "Integrated",
-            GpuMode::Hybrid => "Hybrid",
-            GpuMode::Ultimate => "Ultimate",
+            GpuMode::Integrated => 0,
+            GpuMode::Hybrid => 1,
+            GpuMode::Ultimate => 2,
         }
     }
+}
+
+/// Result of a mode change as the UI should show it.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+struct ModeView {
+    shown: GpuMode,
+    reboot_pending: bool,
+}
+
+/// Decide what the segmented control shows after a write attempt.
+///
+/// `boot` is the mode active when the app started (the firmware applies a
+/// change only after a reboot). A successful write shows the requested mode and
+/// flags a reboot when it differs from `boot`; a failed write falls back to the
+/// hardware `readback`, with a reboot flagged only if that differs from `boot`.
+fn mode_after_apply(boot: GpuMode, target: GpuMode, write_ok: bool, readback: GpuMode) -> ModeView {
+    let shown = if write_ok { target } else { readback };
+    ModeView {
+        shown,
+        reboot_pending: shown != boot,
+    }
+}
+
+/// Snap a slider value to the attribute's range and step.
+///
+/// The grid starts at `min`; the result never exceeds `max`. A non-positive
+/// `step` (unreported by firmware) is treated as 1.
+fn snap_to_step(value: f32, min: i32, max: i32, step: i32) -> i32 {
+    let step = if step > 0 { step } else { 1 };
+    let clamped = value.clamp(min as f32, max.max(min) as f32);
+    let steps = ((clamped - min as f32) / step as f32).round() as i32;
+    let mut snapped = min + steps * step;
+    if snapped > max {
+        snapped -= step;
+    }
+    snapped.max(min)
 }
 
 /// GPU switching capabilities exposed by asusd, plus the proxies to drive them.
@@ -66,11 +103,11 @@ impl GpuCaps {
     /// Modes this hardware supports, in display order.
     fn modes(&self) -> Vec<GpuMode> {
         let mut modes = Vec::new();
-        if self.dgpu.is_some() {
-            modes.push(GpuMode::Integrated);
-        }
         if self.switchable() {
             modes.push(GpuMode::Hybrid);
+        }
+        if self.dgpu.is_some() {
+            modes.push(GpuMode::Integrated);
         }
         if self.mux.is_some() {
             modes.push(GpuMode::Ultimate);
@@ -127,7 +164,7 @@ fn index_of(modes: &[GpuMode], mode: GpuMode) -> i32 {
     modes.iter().position(|m| *m == mode).unwrap_or(0) as i32
 }
 
-fn set_dropdown_enabled(handle: &Weak<MainWindow>, enabled: bool) {
+fn set_selector_enabled(handle: &Weak<MainWindow>, enabled: bool) {
     handle
         .upgrade_in_event_loop(move |h| {
             h.global::<GPUPageData>().set_gpu_dropdown_enabled(enabled);
@@ -135,10 +172,10 @@ fn set_dropdown_enabled(handle: &Weak<MainWindow>, enabled: bool) {
         .unwrap_or_else(|e| error!("setup_gpu: failed to set dropdown state: {e:?}"));
 }
 
-/// Disable the dropdown, apply `mode`, toast the result, then refresh + re-enable.
-fn set_gpu_mode(caps: Arc<GpuCaps>, handle: Weak<MainWindow>, mode: GpuMode) {
+/// Disable the selector, apply `mode`, toast the result, then refresh + re-enable.
+fn set_gpu_mode(caps: Arc<GpuCaps>, handle: Weak<MainWindow>, boot: GpuMode, mode: GpuMode) {
     // Called from the slint callback on the event-loop thread, so disable the
-    // dropdown synchronously here — a second selection can't slip in before the
+    // selector synchronously here — a second selection can't slip in before the
     // write is queued.
     if let Some(h) = handle.upgrade() {
         h.global::<GPUPageData>().set_gpu_dropdown_enabled(false);
@@ -146,6 +183,7 @@ fn set_gpu_mode(caps: Arc<GpuCaps>, handle: Weak<MainWindow>, mode: GpuMode) {
 
     tokio::spawn(async move {
         let result = caps.apply(mode).await;
+        let write_ok = result.is_ok();
         show_toast(
             SharedString::from("GPU mode change scheduled — reboot required for changes to apply."),
             SharedString::from("Failed to set GPU mode"),
@@ -153,15 +191,17 @@ fn set_gpu_mode(caps: Arc<GpuCaps>, handle: Weak<MainWindow>, mode: GpuMode) {
             result,
         );
 
-        // Reflect the (possibly unchanged) hardware state back into the dropdown.
-        let new_index = index_of(&caps.modes(), caps.current_mode().await);
+        let view = mode_after_apply(boot, mode, write_ok, caps.current_mode().await);
+        let new_index = index_of(&caps.modes(), view.shown);
         handle
             .upgrade_in_event_loop(move |h| {
-                h.global::<GPUPageData>().set_gpu_mode_index(new_index);
+                let global = h.global::<GPUPageData>();
+                global.set_gpu_mode_index(new_index);
+                global.set_gpu_reboot_pending(view.reboot_pending);
             })
             .unwrap_or_else(|e| error!("setup_gpu: failed to refresh mode: {e:?}"));
 
-        set_dropdown_enabled(&handle, true);
+        set_selector_enabled(&handle, true);
     });
 }
 
@@ -201,6 +241,35 @@ fn apu_mem_val_to_label(value: i32) -> SharedString {
 // Populate GPU page choices and wire the `cb_set_gpu_mode` callback
 pub fn setup_gpu_page(ui: &MainWindow) {
     let handle = ui.as_weak();
+    ui.global::<GPUPageData>()
+        .on_snap(snap_to_step);
+
+    // Slider steps come from each attribute's ScalarIncrement, never hardcoded.
+    let step_handle = ui.as_weak();
+    tokio::spawn(async move {
+        let Ok(attrs) = find_iface_async::<AsusArmouryProxy>("xyz.ljones.AsusArmoury").await else {
+            return;
+        };
+        for attr in attrs {
+            let Ok(name) = attr.name().await else {
+                continue;
+            };
+            let step = attr.scalar_increment().await.unwrap_or(1);
+            step_handle
+                .upgrade_in_event_loop(move |h| {
+                    let g = h.global::<GPUPageData>();
+                    match name {
+                        FirmwareAttribute::PptPl1Spl => g.set_ppt_pl1_step(step),
+                        FirmwareAttribute::PptPl2Sppt => g.set_ppt_pl2_step(step),
+                        FirmwareAttribute::PptPl3Fppt => g.set_ppt_pl3_step(step),
+                        FirmwareAttribute::NvDynamicBoost => g.set_nv_boost_step(step),
+                        FirmwareAttribute::NvTempTarget => g.set_nv_temp_step(step),
+                        _ => {}
+                    }
+                })
+                .ok();
+        }
+    });
 
     tokio::spawn(async move {
         let caps = match GpuCaps::discover().await {
@@ -213,17 +282,15 @@ pub fn setup_gpu_page(ui: &MainWindow) {
 
         let modes = caps.modes();
         let switchable = caps.switchable();
-        let current_index = index_of(&modes, caps.current_mode().await);
-        let choices: Vec<SharedString> = modes
-            .iter()
-            .map(|m| SharedString::from(m.label()))
-            .collect();
+        let boot = caps.current_mode().await;
+        let current_index = index_of(&modes, boot);
+        let ids: Vec<i32> = modes.iter().map(|m| m.id()).collect();
 
         let caps_cb = caps.clone();
         let handle_cb = handle.clone();
         if let Err(e) = handle.upgrade_in_event_loop(move |handle| {
             let global = handle.global::<GPUPageData>();
-            global.set_gpu_modes(choices.as_slice().into());
+            global.set_gpu_mode_ids(ids.as_slice().into());
             global.set_gpu_switchable(switchable);
             global.set_gpu_dropdown_enabled(switchable);
             global.set_gpu_mode_index(current_index);
@@ -232,7 +299,7 @@ pub fn setup_gpu_page(ui: &MainWindow) {
                 let Some(mode) = modes.get(index as usize).copied() else {
                     return;
                 };
-                set_gpu_mode(caps_cb.clone(), handle_cb.clone(), mode);
+                set_gpu_mode(caps_cb.clone(), handle_cb.clone(), boot, mode);
             });
         }) {
             error!("setup_gpu_page: upgrade_in_event_loop: {e:?}");
@@ -421,4 +488,76 @@ pub fn setup_gpu_page(ui: &MainWindow) {
             }
         });
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn mode_ids_are_distinct_and_stable() {
+        assert_eq!(GpuMode::Integrated.id(), 0);
+        assert_eq!(GpuMode::Hybrid.id(), 1);
+        assert_eq!(GpuMode::Ultimate.id(), 2);
+    }
+
+    #[test]
+    fn successful_change_shows_target_and_flags_reboot() {
+        let v = mode_after_apply(GpuMode::Hybrid, GpuMode::Ultimate, true, GpuMode::Hybrid);
+        assert_eq!(
+            v,
+            ModeView {
+                shown: GpuMode::Ultimate,
+                reboot_pending: true
+            }
+        );
+    }
+
+    #[test]
+    fn switching_back_to_boot_mode_clears_pending() {
+        let v = mode_after_apply(GpuMode::Hybrid, GpuMode::Hybrid, true, GpuMode::Ultimate);
+        assert_eq!(
+            v,
+            ModeView {
+                shown: GpuMode::Hybrid,
+                reboot_pending: false
+            }
+        );
+    }
+
+    #[test]
+    fn failed_write_falls_back_to_readback() {
+        let v = mode_after_apply(GpuMode::Hybrid, GpuMode::Ultimate, false, GpuMode::Hybrid);
+        assert_eq!(
+            v,
+            ModeView {
+                shown: GpuMode::Hybrid,
+                reboot_pending: false
+            }
+        );
+    }
+
+    #[test]
+    fn snap_clamps_to_range() {
+        assert_eq!(snap_to_step(3.0, 15, 80, 1), 15);
+        assert_eq!(snap_to_step(200.0, 15, 80, 1), 80);
+    }
+
+    #[test]
+    fn snap_rounds_to_step_grid_from_min() {
+        assert_eq!(snap_to_step(17.4, 15, 80, 5), 15);
+        assert_eq!(snap_to_step(17.6, 15, 80, 5), 20);
+    }
+
+    #[test]
+    fn snap_never_exceeds_max_when_grid_misses_it() {
+        // grid 5,10,15 with max 17: 17 rounds to 15 not 20
+        assert_eq!(snap_to_step(17.0, 5, 17, 5), 15);
+    }
+
+    #[test]
+    fn snap_treats_missing_step_as_one() {
+        assert_eq!(snap_to_step(42.4, 0, 100, 0), 42);
+        assert_eq!(snap_to_step(42.6, 0, 100, -1), 43);
+    }
 }

@@ -1,13 +1,17 @@
-import { Palette, TabWidget, Button, CheckBox, ScrollView } from "std-widgets.slint";
-import { Graph, Node } from "../widgets/graph.slint";
-import { SystemToggle, SystemDropdown } from "../widgets/common.slint";
-import { Profile, FanType, FanPageData } from "../types/fan_types.slint";
+import { ScrollView } from "std-widgets.slint";
+import { Theme } from "../theme.slint";
+import { Card, SegmentedControl, ToggleRow } from "../widgets/kit.slint";
+import { SliderRow, WarningBand } from "../widgets/gpu_widgets.slint";
+import { SystemPageData } from "system.slint";
+import { FanPageData } from "../types/fan_types.slint";
 
 export global GPUPageData {
-    in-out property <int> gpu_mode_index: 0; // index into gpu_modes
-    in-out property <[string]> gpu_modes: []; // available modes, in display order
+    // Mode ids in display order: 0 iGPU only, 1 Hybrid, 2 dGPU only (MUX).
+    in-out property <[int]> gpu_mode_ids: [];
+    in-out property <int> gpu_mode_index: 0; // index into gpu_mode_ids
     in-out property <bool> gpu_switchable: false; // false when no GPU switch exists
-    in-out property <bool> gpu_dropdown_enabled: true; // false when GPU switch is in progress
+    in-out property <bool> gpu_dropdown_enabled: true; // false while a switch is in progress
+    in-out property <bool> gpu_reboot_pending: false; // a written mode needs a reboot
     callback cb_set_gpu_mode(int);
 
     in-out property <bool> has_xgm_led: false; // true when XG Mobile LED is present
@@ -21,117 +25,233 @@ export global GPUPageData {
     in-out property <[string]> apu_mem_choices: []; // available choices, in display order
     in-out property <bool> apu_mem_present: false; // false when apu_mem is not available
     callback cb_set_apu_mem(int);
+
+    // Slider steps (D-Bus ScalarIncrement) for the attributes shown here.
+    in-out property <int> ppt_pl1_step: 1;
+    in-out property <int> ppt_pl2_step: 1;
+    in-out property <int> ppt_pl3_step: 1;
+    in-out property <int> nv_boost_step: 1;
+    in-out property <int> nv_temp_step: 1;
+    // Snap a raw slider value to min/max/step (implemented in Rust).
+    pure callback snap(float, int, int, int) -> int;
 }
 
 export component PageGPU inherits Rectangle {
-    clip: true;
+    // Mirrors PageSystem: the kernel only accepts PPT writes while a custom
+    // fan curve is enabled for the active profile.
+    property <int> active_profile_value: (SystemPageData.platform_profile >= 0 && SystemPageData.platform_profile < SystemPageData.platform_profile_indexes.length) ? SystemPageData.platform_profile_indexes[SystemPageData.platform_profile] : -1;
+    property <bool> fan_curve_active: (active_profile_value == 0 && (FanPageData.balanced_cpu_enabled || FanPageData.balanced_gpu_enabled || FanPageData.balanced_mid_enabled)) || (active_profile_value == 1 && (FanPageData.performance_cpu_enabled || FanPageData.performance_gpu_enabled || FanPageData.performance_mid_enabled)) || ((active_profile_value == 2 || active_profile_value == 3) && (FanPageData.quiet_cpu_enabled || FanPageData.quiet_gpu_enabled || FanPageData.quiet_mid_enabled));
+    property <bool> tuning_on: SystemPageData.enable_ppt_group && fan_curve_active;
 
-    property <[string]> modes_all: [@tr("Integrated"), @tr("Hybrid"), @tr("Ultimate")];
-    property <[string]> modes_dgpu: [@tr("Integrated"), @tr("Hybrid")];
-    property <[string]> modes_mux: [@tr("Hybrid"), @tr("Ultimate")];
+    property <bool> has_boost: SystemPageData.nv_dynamic_boost.max > 0 && SystemPageData.nv_dynamic_boost.current != -1;
+    property <bool> has_temp: SystemPageData.nv_temp_target.max > 0 && SystemPageData.nv_temp_target.current != -1;
+    property <bool> has_pl1: SystemPageData.ppt_pl1_spl.max > 0 && SystemPageData.ppt_pl1_spl.current != -1;
+    property <bool> has_pl2: SystemPageData.ppt_pl2_sppt.max > 0 && SystemPageData.ppt_pl2_sppt.current != -1;
+    property <bool> has_pl3: SystemPageData.ppt_pl3_fppt.max > 0 && SystemPageData.ppt_pl3_fppt.current != -1;
+
+    // Fixed three labels; ids tell which of them this machine offers.
+    property <[string]> modes_all: [@tr("Hybrid"), @tr("iGPU only"), @tr("dGPU only (MUX)")];
+    property <[string]> modes_igpu: [@tr("Hybrid"), @tr("iGPU only")];
+    property <[string]> modes_mux: [@tr("Hybrid"), @tr("dGPU only (MUX)")];
+
+    background: Theme.window-bg;
+    clip: true;
 
     ScrollView {
         VerticalLayout {
-            padding: 12px;
-            spacing: 8px;
+            padding: Theme.pad;
+            spacing: Theme.gap;
+            alignment: start;
 
-            Rectangle {
-                background: Palette.alternate-background;
-                border-color: Palette.border;
-                border-width: 1px;
-                border-radius: 2px;
-                height: 36px;
-                Text {
-                    font-size: 16px;
-                    color: Palette.control-foreground;
-                    horizontal-alignment: TextHorizontalAlignment.center;
-                    text: @tr("Internal/Discrete GPU");
-                }
+            if !GPUPageData.gpu_switchable && !root.has_boost && !root.has_temp && !root.has_pl1 && !root.has_pl2 && !root.has_pl3 && !GPUPageData.apu_mem_present && !GPUPageData.has_xgm_led: Text {
+                text: @tr("This device has no switchable GPU.");
+                color: Theme.text-secondary;
+                font-size: Theme.font-body;
             }
 
-            if !GPUPageData.gpu_switchable: HorizontalLayout {
-                padding-right: 10px;
-                padding-left: 10px;
-                Text {
-                    font-size: 16px;
-                    text: @tr("This device has no switchable GPU.");
-                }
-            }
-
-            if GPUPageData.gpu_switchable: HorizontalLayout {
-                padding-right: 10px;
-                padding-left: 10px;
-                alignment: LayoutAlignment.space-between;
+            if GPUPageData.gpu_switchable: Card {
+                title: @tr("GPU mode");
                 Rectangle {
-                    height: 32px;
-                    Text {
-                        font-size: 16px;
-                        text: @tr("Note: Changes take effect after a reboot. The dropdown always shows the current mode.");
+                    height: 40px;
+                    SegmentedControl {
+                        width: parent.width;
+                        height: parent.height;
+                        model: GPUPageData.gpu_mode_ids.length == 3 ? root.modes_all : (GPUPageData.gpu_mode_ids.length == 2 && GPUPageData.gpu_mode_ids[1] == 0 ? root.modes_igpu : root.modes_mux);
+                        current-index <=> GPUPageData.gpu_mode_index;
+                        opacity: GPUPageData.gpu_dropdown_enabled ? 1 : 0.5;
+                        selected(index) => {
+                            GPUPageData.cb_set_gpu_mode(index);
+                        }
+                    }
+                    // Swallow clicks while a switch is being written
+                    if !GPUPageData.gpu_dropdown_enabled: TouchArea { }
+                }
+                Text {
+                    text: @tr("Hybrid uses the integrated GPU and wakes the NVIDIA GPU on demand.");
+                    color: Theme.text-secondary;
+                    font-size: Theme.font-small;
+                    wrap: word-wrap;
+                }
+                if GPUPageData.gpu_reboot_pending: WarningBand {
+                    text: @tr("The new GPU mode applies after a reboot.");
+                }
+            }
+
+            if root.has_boost || root.has_temp: Card {
+                title: @tr("NVIDIA");
+                if !root.tuning_on: Text {
+                    text: @tr("Unlock these in the power limits card below.");
+                    color: Theme.text-secondary;
+                    font-size: Theme.font-small;
+                    wrap: word-wrap;
+                }
+                if root.has_boost: SliderRow {
+                    title: @tr("Dynamic Boost");
+                    hint: @tr("Extra power the GPU may borrow from the CPU. Higher is faster and hotter.");
+                    unit: "W";
+                    enabled: root.tuning_on;
+                    has-reset: true;
+                    minimum: SystemPageData.nv_dynamic_boost.min;
+                    maximum: SystemPageData.nv_dynamic_boost.max;
+                    value: SystemPageData.nv_dynamic_boost.current;
+                    released(raw) => {
+                        SystemPageData.nv_dynamic_boost.current = GPUPageData.snap(raw, SystemPageData.nv_dynamic_boost.min, SystemPageData.nv_dynamic_boost.max, GPUPageData.nv_boost_step);
+                        SystemPageData.cb_nv_dynamic_boost(Math.round(SystemPageData.nv_dynamic_boost.current));
+                    }
+                    reset => {
+                        SystemPageData.cb_default_nv_dynamic_boost();
+                    }
+                }
+                if root.has_temp: SliderRow {
+                    title: @tr("Temperature target");
+                    hint: @tr("The GPU slows down once it reaches this temperature.");
+                    unit: "°C";
+                    enabled: root.tuning_on;
+                    has-reset: true;
+                    minimum: SystemPageData.nv_temp_target.min;
+                    maximum: SystemPageData.nv_temp_target.max;
+                    value: SystemPageData.nv_temp_target.current;
+                    released(raw) => {
+                        SystemPageData.nv_temp_target.current = GPUPageData.snap(raw, SystemPageData.nv_temp_target.min, SystemPageData.nv_temp_target.max, GPUPageData.nv_temp_step);
+                        SystemPageData.cb_nv_temp_target(Math.round(SystemPageData.nv_temp_target.current));
+                    }
+                    reset => {
+                        SystemPageData.cb_default_nv_temp_target();
                     }
                 }
             }
 
-            if GPUPageData.gpu_switchable: HorizontalLayout {
-                SystemDropdown {
-                    text: @tr("GPU mode");
-                    model: GPUPageData.gpu_modes.length == 3 ? root.modes_all : (
-                        GPUPageData.gpu_modes.length == 2 && GPUPageData.gpu_modes[0] == "Integrated" ? root.modes_dgpu : root.modes_mux
-                    );
-                    current_index <=> GPUPageData.gpu_mode_index;
-                    current_value: self.model[self.current_index];
-                    enabled <=> GPUPageData.gpu_dropdown_enabled;
-                    selected => {
-                        GPUPageData.cb_set_gpu_mode(GPUPageData.gpu_mode_index)
+            if root.has_pl1 || root.has_pl2 || root.has_pl3: Card {
+                title: @tr("CPU power limits (PPT)");
+                // Reset calls restore_default on the attribute; D-Bus
+                // DefaultValue reports 45/54/65 W while the kernel sysfs
+                // default is 80 W. Behaviour is kept as on the System page.
+                if SystemPageData.ppt_enabled_available: ToggleRow {
+                    title: @tr("Enable tuning");
+                    hint: @tr("Limits below are ignored until tuning is on.");
+                    enabled: root.fan_curve_active;
+                    checked: SystemPageData.ppt_enabled;
+                    toggled(value) => {
+                        SystemPageData.ppt_enabled = value;
+                        SystemPageData.enable_ppt_group = value;
+                        SystemPageData.cb_ppt_enabled(value);
+                    }
+                }
+                if !SystemPageData.ppt_enabled_available: ToggleRow {
+                    title: @tr("Enable tuning");
+                    hint: @tr("Limits below are ignored until tuning is on.");
+                    enabled: root.fan_curve_active;
+                    checked: SystemPageData.enable_ppt_group;
+                    toggled(value) => {
+                        SystemPageData.enable_ppt_group = value;
+                        SystemPageData.cb_enable_ppt_group(value);
+                    }
+                }
+                if !root.fan_curve_active: WarningBand {
+                    text: @tr("Power limits need a custom fan curve. Turn one on for this profile in the Fans page.");
+                }
+                if root.has_pl1: SliderRow {
+                    title: @tr("PL1 sustained");
+                    hint: @tr("Long-term CPU power. Sets steady-state performance and heat.");
+                    unit: "W";
+                    enabled: root.tuning_on;
+                    has-reset: true;
+                    minimum: SystemPageData.ppt_pl1_spl.min;
+                    maximum: SystemPageData.ppt_pl1_spl.max;
+                    value: SystemPageData.ppt_pl1_spl.current;
+                    released(raw) => {
+                        SystemPageData.ppt_pl1_spl.current = GPUPageData.snap(raw, SystemPageData.ppt_pl1_spl.min, SystemPageData.ppt_pl1_spl.max, GPUPageData.ppt_pl1_step);
+                        SystemPageData.cb_ppt_pl1_spl(Math.round(SystemPageData.ppt_pl1_spl.current));
+                    }
+                    reset => {
+                        SystemPageData.cb_default_ppt_pl1_spl();
+                    }
+                }
+                if root.has_pl2: SliderRow {
+                    title: @tr("PL2 turbo");
+                    hint: @tr("Short-term CPU power for boost bursts.");
+                    unit: "W";
+                    enabled: root.tuning_on;
+                    has-reset: true;
+                    minimum: SystemPageData.ppt_pl2_sppt.min;
+                    maximum: SystemPageData.ppt_pl2_sppt.max;
+                    value: SystemPageData.ppt_pl2_sppt.current;
+                    released(raw) => {
+                        SystemPageData.ppt_pl2_sppt.current = GPUPageData.snap(raw, SystemPageData.ppt_pl2_sppt.min, SystemPageData.ppt_pl2_sppt.max, GPUPageData.ppt_pl2_step);
+                        SystemPageData.cb_ppt_pl2_sppt(Math.round(SystemPageData.ppt_pl2_sppt.current));
+                    }
+                    reset => {
+                        SystemPageData.cb_default_ppt_pl2_sppt();
+                    }
+                }
+                if root.has_pl3: SliderRow {
+                    title: @tr("PL3 fast burst");
+                    hint: @tr("Very short CPU power spikes for sudden load.");
+                    unit: "W";
+                    enabled: root.tuning_on;
+                    has-reset: true;
+                    minimum: SystemPageData.ppt_pl3_fppt.min;
+                    maximum: SystemPageData.ppt_pl3_fppt.max;
+                    value: SystemPageData.ppt_pl3_fppt.current;
+                    released(raw) => {
+                        SystemPageData.ppt_pl3_fppt.current = GPUPageData.snap(raw, SystemPageData.ppt_pl3_fppt.min, SystemPageData.ppt_pl3_fppt.max, GPUPageData.ppt_pl3_step);
+                        SystemPageData.cb_ppt_pl3_fppt(Math.round(SystemPageData.ppt_pl3_fppt.current));
+                    }
+                    reset => {
+                        SystemPageData.cb_default_ppt_pl3_fppt();
                     }
                 }
             }
 
-            if GPUPageData.apu_mem_present: HorizontalLayout {
-                padding-right: 10px;
-                padding-left: 10px;
-                alignment: LayoutAlignment.space-between;
-                Rectangle {
-                    height: 32px;
-                    Text {
-                        font-size: 16px;
-                        text: @tr("Note: Reserved GPU memory changes take effect after a reboot.");
+            if GPUPageData.apu_mem_present: Card {
+                title: @tr("Reserved GPU memory");
+                SegmentedControl {
+                    model: GPUPageData.apu_mem_choices;
+                    current-index <=> GPUPageData.apu_mem_index;
+                    selected(index) => {
+                        GPUPageData.cb_set_apu_mem(index);
                     }
+                }
+                WarningBand {
+                    text: @tr("Reserved GPU memory changes apply after a reboot.");
                 }
             }
 
-            if GPUPageData.apu_mem_present: HorizontalLayout {
-                SystemDropdown {
-                    text: @tr("Reserved GPU memory");
-                    model <=> GPUPageData.apu_mem_choices;
-                    current_index <=> GPUPageData.apu_mem_index;
-                    current_value: GPUPageData.apu_mem_choices[GPUPageData.apu_mem_index];
-                    selected => {
-                        GPUPageData.cb_set_apu_mem(GPUPageData.apu_mem_index)
-                    }
-                }
-            }
-
-            if GPUPageData.has_xgm_led: HorizontalLayout {
-                padding-right: 10px;
-                padding-left: 10px;
-                SystemToggle {
-                    text: @tr("XG Mobile LED");
+            if GPUPageData.has_xgm_led || SystemPageData.has_dgpu: Card {
+                if GPUPageData.has_xgm_led: ToggleRow {
+                    title: @tr("XG Mobile LED");
+                    hint: @tr("Light on the external GPU dock.");
                     checked <=> GPUPageData.xgm_led_enabled;
-                    toggled(checked) => {
-                        GPUPageData.cb_set_xgm_led_enabled(checked);
+                    toggled(value) => {
+                        GPUPageData.cb_set_xgm_led_enabled(value);
                     }
                 }
-            }
-
-            // Disable nvidia-powerd on battery toggle
-            HorizontalLayout {
-                padding-right: 10px;
-                padding-left: 10px;
-                SystemToggle {
-                    text: @tr("Disable nvidia-powerd on battery");
+                if SystemPageData.has_dgpu: ToggleRow {
+                    title: @tr("Disable nvidia-powerd on battery");
+                    hint: @tr("Stops the NVIDIA power daemon when unplugged to save power.");
                     checked <=> GPUPageData.disable_nvidia_powerd_on_battery;
-                    toggled(checked) => {
-                        GPUPageData.cb_disable_nvidia_powerd_on_battery(checked);
+                    toggled(value) => {
+                        GPUPageData.cb_disable_nvidia_powerd_on_battery(value);
                     }
                 }
             }
