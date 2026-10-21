@@ -1,3 +1,4 @@
+pub mod overview;
 pub mod setup_anime;
 pub mod setup_aura;
 pub mod setup_fans;
@@ -130,6 +131,7 @@ pub fn setup_window(
     ui.set_sidebar_items_avilable(
         [
             // Needs to match the order of slint sidebar items
+            available.contains(&"xyz.ljones.Platform".to_string()), // Overview
             available.contains(&"xyz.ljones.Platform".to_string()),
             available.contains(&"xyz.ljones.Aura".to_string()),
             available.contains(&"xyz.ljones.Anime".to_string()),
@@ -150,6 +152,7 @@ pub fn setup_window(
     });
 
     setup_app_settings_page(&ui, config.clone(), shortcuts);
+    overview::setup_overview_page(&ui);
     if available.contains(&"xyz.ljones.Platform".to_string()) {
         setup_system_page(&ui, config.clone(), app_state.clone());
         setup_system_page_callbacks(&ui, config.clone());

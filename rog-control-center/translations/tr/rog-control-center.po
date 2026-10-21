@@ -1236,3 +1236,78 @@ msgstr "Çık"
 #~ msgctxt "PageSystem"
 #~ msgid "EPP for Quiet Policy"
 #~ msgstr "Sessiz Politikası için EPP"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "Menu0"
+msgid "Overview"
+msgstr "Genel bakış"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "CPU temperature"
+msgstr "CPU sıcaklığı"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "GPU temperature"
+msgstr "GPU sıcaklığı"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "CPU fan"
+msgstr "CPU fanı"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Battery"
+msgstr "Pil"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Performance profile"
+msgstr "Performans profili"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Quick settings"
+msgstr "Hızlı ayarlar"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Limit charge to 80%"
+msgstr "Şarjı %80 ile sınırla"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Keeps the battery healthier when plugged in."
+msgstr "Fişe takılıyken pilin sağlığını korur."
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Panel overdrive"
+msgstr "Panel overdrive"
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Faster pixel response on the display."
+msgstr "Ekranda daha hızlı piksel tepkisi."
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Everyday use: balances speed, noise and battery life."
+msgstr "Günlük kullanım: hız, gürültü ve pil ömrünü dengeler."
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Maximum speed with louder fans and higher temperatures."
+msgstr "Daha gürültülü fanlar ve yüksek sıcaklıklarla azami hız."
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Quiet fans and low power draw for light tasks."
+msgstr "Hafif işler için sessiz fanlar ve düşük güç tüketimi."
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Lowest power use to stretch battery life."
+msgstr "Pil ömrünü uzatmak için en düşük güç kullanımı."

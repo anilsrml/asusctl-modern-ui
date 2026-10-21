@@ -1202,3 +1202,78 @@ msgstr ""
 msgctxt "MainWindow"
 msgid "Quit App"
 msgstr ""
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "Menu0"
+msgid "Overview"
+msgstr ""
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "CPU temperature"
+msgstr ""
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "GPU temperature"
+msgstr ""
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "CPU fan"
+msgstr ""
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Battery"
+msgstr ""
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Performance profile"
+msgstr ""
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Quick settings"
+msgstr ""
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Limit charge to 80%"
+msgstr ""
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Keeps the battery healthier when plugged in."
+msgstr ""
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Panel overdrive"
+msgstr ""
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Faster pixel response on the display."
+msgstr ""
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Everyday use: balances speed, noise and battery life."
+msgstr ""
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Maximum speed with louder fans and higher temperatures."
+msgstr ""
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Quiet fans and low power draw for light tasks."
+msgstr ""
+
+#: rog-control-center/ui/pages/overview.slint
+msgctxt "PageOverview"
+msgid "Lowest power use to stretch battery life."
+msgstr ""

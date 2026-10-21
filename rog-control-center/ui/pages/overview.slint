@@ -1,0 +1,93 @@
+import { ScrollView } from "std-widgets.slint";
+import { Theme } from "../theme.slint";
+import { Card, MetricTile, SegmentedControl, ToggleRow } from "../widgets/kit.slint";
+import { SystemPageData } from "system.slint";
+
+export global OverviewData {
+    // true when the charge end threshold is below 100
+    callback toggle_charge_limit(bool);
+}
+
+export component PageOverview inherits Rectangle {
+    // Platform profile enum value (Balanced=0, Performance=1, Quiet=2, LowPower=3)
+    property <int> active_profile:
+        (SystemPageData.platform_profile >= 0 && SystemPageData.platform_profile < SystemPageData.platform_profile_indexes.length)
+            ? SystemPageData.platform_profile_indexes[SystemPageData.platform_profile]
+            : -1;
+    property <string> profile_hint:
+        active_profile == 0 ? @tr("Everyday use: balances speed, noise and battery life.")
+        : active_profile == 1 ? @tr("Maximum speed with louder fans and higher temperatures.")
+        : active_profile == 2 ? @tr("Quiet fans and low power draw for light tasks.")
+        : active_profile == 3 ? @tr("Lowest power use to stretch battery life.")
+        : "";
+    property <bool> has_charge_limit: SystemPageData.charge_control_end_threshold != -1;
+    property <bool> has_overdrive: SystemPageData.panel_overdrive != -1;
+    clip: true;
+
+    ScrollView {
+        VerticalLayout {
+            padding: 12px;
+            spacing: Theme.gap;
+            alignment: start;
+
+            HorizontalLayout {
+                spacing: Theme.gap;
+                MetricTile {
+                    label: @tr("CPU temperature");
+                    value: SystemPageData.cpu_temp_val > 0 ? Math.round(SystemPageData.cpu_temp_val) + " °C" : "–";
+                }
+                MetricTile {
+                    label: @tr("GPU temperature");
+                    value: SystemPageData.gpu_temp_val > 0 ? Math.round(SystemPageData.gpu_temp_val) + " °C" : "–";
+                }
+                MetricTile {
+                    label: @tr("CPU fan");
+                    value: SystemPageData.cpu_fan_rpm > 0 ? SystemPageData.cpu_fan_rpm + " rpm" : "–";
+                }
+                MetricTile {
+                    label: @tr("Battery");
+                    value: SystemPageData.battery_percent >= 0 ? SystemPageData.battery_percent + " %" : "–";
+                }
+            }
+
+            Card {
+                title: @tr("Performance profile");
+                SegmentedControl {
+                    model: SystemPageData.platform_profile_choices;
+                    current-index: SystemPageData.platform_profile;
+                    selected(index) => {
+                        SystemPageData.platform_profile = index;
+                        SystemPageData.cb_platform_profile(SystemPageData.platform_profile_indexes[index]);
+                    }
+                }
+                if root.profile_hint != "": Text {
+                    text: root.profile_hint;
+                    color: Theme.text-secondary;
+                    font-size: Theme.font-small;
+                    wrap: word-wrap;
+                }
+            }
+
+            if root.has_charge_limit || root.has_overdrive: Card {
+                title: @tr("Quick settings");
+                if root.has_charge_limit: ToggleRow {
+                    title: @tr("Limit charge to 80%");
+                    hint: @tr("Keeps the battery healthier when plugged in.");
+                    checked: SystemPageData.charge_control_end_threshold < 100;
+                    toggled(value) => {
+                        OverviewData.toggle_charge_limit(value);
+                    }
+                }
+                if root.has_overdrive: ToggleRow {
+                    title: @tr("Panel overdrive");
+                    hint: @tr("Faster pixel response on the display.");
+                    checked: SystemPageData.panel_overdrive == 1;
+                    toggled(value) => {
+                        SystemPageData.panel_overdrive = value ? 1 : 0;
+                        SystemPageData.cb_panel_overdrive(SystemPageData.panel_overdrive);
+                    }
+                }
+            }
+        }
+    }
+}
