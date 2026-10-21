@@ -1,102 +1,145 @@
-import { SystemSlider, RogItem } from "../widgets/common.slint";
-import { Palette, VerticalBox, ScrollView } from "std-widgets.slint";
+import { Button, ScrollView, Slider } from "std-widgets.slint";
+import { Theme } from "../theme.slint";
+import { Card, MetricTile, SegmentedControl } from "../widgets/kit.slint";
+import { Badge } from "../widgets/battery_widgets.slint";
 import { SystemPageData } from "system.slint";
 
+export global BatteryPageData {
+    // Every reading is -1 when sysfs does not provide it; its tile stays hidden.
+    in-out property <int> percent: -1;
+    // 0 unknown, 1 charging, 2 discharging, 3 full, 4 not charging
+    in-out property <int> state: 0;
+    in-out property <float> power_w: -1;
+    in-out property <int> health: -1;
+    in-out property <int> cycles: -1;
+    // Limit that was set before a one-shot full charge, -1 when none is pending.
+    in-out property <int> one_shot_base: -1;
+    // The daemon raises the limit to 100 and restores the base afterwards.
+    out property <bool> one_shot_active: one_shot_base >= 0 && one_shot_base < 100 && SystemPageData.charge_control_end_threshold >= 100;
+    callback one_shot_full_charge();
+    pure callback preset_index_for(float) -> int;
+}
+
 export component PageBattery inherits Rectangle {
+    property <bool> has_limit: SystemPageData.charge_control_end_threshold != -1;
+    property <string> state_text:
+        BatteryPageData.state == 1 ? @tr("Charging")
+        : BatteryPageData.state == 2 ? @tr("Discharging")
+        : BatteryPageData.state == 3 ? @tr("Full")
+        : BatteryPageData.state == 4 ? @tr("Not charging")
+        : "";
     clip: true;
 
     ScrollView {
         VerticalLayout {
             padding: 12px;
-            spacing: 8px;
-            alignment: LayoutAlignment.start;
+            spacing: Theme.gap;
+            alignment: start;
 
-            Rectangle {
-                background: Palette.alternate-background;
-                border-color: Palette.border;
-                border-width: 1px;
-                border-radius: 2px;
-                height: 36px;
+            HorizontalLayout {
+                spacing: Theme.gap;
+                if BatteryPageData.percent >= 0: MetricTile {
+                    label: @tr("Charge");
+                    value: BatteryPageData.percent + " %";
+                }
+                if root.state_text != "": MetricTile {
+                    label: @tr("Status");
+                    value: root.state_text;
+                }
+                if BatteryPageData.power_w >= 0: MetricTile {
+                    label: @tr("Power draw");
+                    value: Math.round(BatteryPageData.power_w * 10) / 10 + " W";
+                }
+                if BatteryPageData.health >= 0: MetricTile {
+                    label: @tr("Health");
+                    value: BatteryPageData.health + " %";
+                }
+                if BatteryPageData.cycles >= 0: MetricTile {
+                    label: @tr("Charge cycles");
+                    value: BatteryPageData.cycles;
+                }
+            }
+
+            if root.has_limit: Card {
+                title: @tr("Charge limit");
+
+                HorizontalLayout {
+                    spacing: Theme.gap;
+                    Slider {
+                        minimum: 20;
+                        maximum: 100;
+                        value: SystemPageData.charge_control_end_threshold;
+                        released(v) => {
+                            BatteryPageData.one_shot_base = -1;
+                            SystemPageData.charge_control_end_threshold = Math.round(v);
+                            SystemPageData.cb_charge_control_end_threshold(Math.round(v));
+                        }
+                    }
+                    Text {
+                        text: Math.round(SystemPageData.charge_control_end_threshold) + " %";
+                        color: Theme.text;
+                        font-size: Theme.font-title;
+                        font-weight: 500;
+                        vertical-alignment: center;
+                        horizontal-alignment: right;
+                        min-width: 48px;
+                    }
+                }
+
+                SegmentedControl {
+                    model: ["60 %", "80 %", "100 %"];
+                    current-index: BatteryPageData.preset_index_for(SystemPageData.charge_control_end_threshold);
+                    selected(index) => {
+                        BatteryPageData.one_shot_base = -1;
+                        SystemPageData.charge_control_end_threshold = index == 0 ? 60 : index == 1 ? 80 : 100;
+                        SystemPageData.cb_charge_control_end_threshold(index == 0 ? 60 : index == 1 ? 80 : 100);
+                    }
+                }
+
                 Text {
-                    font-size: 16px;
-                    color: Palette.control-foreground;
-                    horizontal-alignment: TextHorizontalAlignment.center;
-                    text: @tr("Battery Information");
+                    text: @tr("Stops charging at this level to keep the battery healthier.");
+                    color: Theme.text-secondary;
+                    font-size: Theme.font-small;
+                    wrap: word-wrap;
                 }
             }
 
-            if SystemPageData.charge_control_end_threshold != -1: SystemSlider {
-                text: @tr("Charge limit");
-                minimum: 20;
-                maximum: 100;
-                has_reset: false;
-                enabled <=> SystemPageData.charge_control_enabled;
-                value: SystemPageData.charge_control_end_threshold;
-                released => {
-                    SystemPageData.charge_control_end_threshold = self.value;
-                    SystemPageData.cb_charge_control_end_threshold(Math.round(SystemPageData.charge_control_end_threshold))
-                }
-            }
-
-            if SystemPageData.battery_health != -1: Rectangle {
-                background: Palette.alternate-background;
-                border-color: Palette.border;
-                border-width: 1px;
-                border-radius: 4px;
-                
-                VerticalLayout {
-                    padding: 12px;
-                    spacing: 8px;
-                    
-                    HorizontalLayout {
-                        alignment: LayoutAlignment.space-between;
+            if root.has_limit: Card {
+                HorizontalLayout {
+                    spacing: Theme.gap;
+                    VerticalLayout {
+                        alignment: center;
+                        spacing: 2px;
+                        horizontal-stretch: 1;
                         Text {
-                            text: @tr("Battery Health (Capacity):");
-                            color: Palette.control-foreground;
+                            text: @tr("One-time full charge");
+                            color: Theme.text;
+                            font-size: Theme.font-body;
                         }
                         Text {
-                            text: SystemPageData.battery_health + "%";
-                            font-weight: 700;
-                            color: SystemPageData.battery_health > 80 ? #22c55e : (SystemPageData.battery_health > 50 ? #eab308 : #ef4444);
+                            text: @tr("Charges to 100% once, then returns to your limit.");
+                            color: Theme.text-secondary;
+                            font-size: Theme.font-small;
+                            wrap: word-wrap;
                         }
                     }
-
-                    HorizontalLayout {
-                        alignment: LayoutAlignment.space-between;
-                        Text {
-                            text: @tr("Status:");
-                            color: Palette.control-foreground;
-                        }
-                        Text {
-                            text: SystemPageData.battery_status;
-                            font-weight: 700;
-                            color: Palette.control-foreground;
+                    if BatteryPageData.one_shot_active: VerticalLayout {
+                        alignment: center;
+                        Badge {
+                            text: @tr("Active");
                         }
                     }
-
-                    if SystemPageData.battery_power_consumption != -1.0: HorizontalLayout {
-                        alignment: LayoutAlignment.space-between;
-                        Text {
-                            text: @tr("Power Draw:");
-                            color: Palette.control-foreground;
-                        }
-                        Text {
-                            text: Math.round(SystemPageData.battery_power_consumption * 10) / 10 + " W";
-                            font-weight: 700;
-                            color: SystemPageData.battery_status == "Discharging" ? #ef4444 : #22c55e;
-                        }
-                    }
-
-                    if SystemPageData.battery_time_estimate != "": HorizontalLayout {
-                        alignment: LayoutAlignment.space-between;
-                        Text {
-                            text: SystemPageData.battery_status == "Charging" ? @tr("Time to Full:") : @tr("Time Remaining:");
-                            color: Palette.control-foreground;
-                        }
-                        Text {
-                            text: SystemPageData.battery_time_estimate;
-                            font-weight: 700;
-                            color: Palette.control-foreground;
+                    VerticalLayout {
+                        alignment: center;
+                        Button {
+                            text: @tr("Charge fully");
+                            enabled: !BatteryPageData.one_shot_active;
+                            clicked => {
+                                if (SystemPageData.charge_control_end_threshold < 100) {
+                                    BatteryPageData.one_shot_base = Math.round(SystemPageData.charge_control_end_threshold);
+                                }
+                                BatteryPageData.one_shot_full_charge();
+                            }
                         }
                     }
                 }

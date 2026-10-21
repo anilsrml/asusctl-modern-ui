@@ -1,3 +1,4 @@
+pub mod battery;
 pub mod fan_curve;
 pub mod overview;
 pub mod setup_anime;
@@ -154,6 +155,7 @@ pub fn setup_window(
 
     setup_app_settings_page(&ui, config.clone(), shortcuts);
     overview::setup_overview_page(&ui);
+    battery::setup_battery_page(&ui, app_state.clone());
     if available.contains(&"xyz.ljones.Platform".to_string()) {
         setup_system_page(&ui, config.clone(), app_state.clone());
         setup_system_page_callbacks(&ui, config.clone());

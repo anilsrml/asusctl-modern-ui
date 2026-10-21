@@ -310,43 +310,6 @@ msgstr ""
 "Slash Aydınlatma, desteklenen Zephyrus modellerindeki A-kapağı LED şeridini "
 "kontrol eder."
 
-#: rog-control-center/ui/pages/battery.slint:24
-msgctxt "PageBattery"
-msgid "Battery Information"
-msgstr "Pil Bilgisi"
-
-#: rog-control-center/ui/pages/battery.slint:29
-#, fuzzy
-msgctxt "PageBattery"
-msgid "Charge limit"
-msgstr "Şarj limiti"
-
-#: rog-control-center/ui/pages/battery.slint:54
-msgctxt "PageBattery"
-msgid "Battery Health (Capacity):"
-msgstr "Pil Sağlığı (Kapasite):"
-
-#: rog-control-center/ui/pages/battery.slint:67
-#, fuzzy
-msgctxt "PageBattery"
-msgid "Status:"
-msgstr "Durum:"
-
-#: rog-control-center/ui/pages/battery.slint:80
-msgctxt "PageBattery"
-msgid "Power Draw:"
-msgstr "Güç Tüketimi:"
-
-#: rog-control-center/ui/pages/battery.slint:93
-msgctxt "PageBattery"
-msgid "Time to Full:"
-msgstr "Tam Şarja Kalan Süre:"
-
-#: rog-control-center/ui/pages/battery.slint:93
-msgctxt "PageBattery"
-msgid "Time Remaining:"
-msgstr "Kalan Süre:"
-
 #: rog-control-center/ui/pages/app_settings.slint:27
 msgctxt "PageAppSettings"
 msgid "Run in background after closing"
@@ -1352,3 +1315,78 @@ msgstr "Hafif işler için sessiz fanlar ve düşük güç tüketimi."
 msgctxt "PageOverview"
 msgid "Lowest power use to stretch battery life."
 msgstr "Pil ömrünü uzatmak için en düşük güç kullanımı."
+
+#: rog-control-center/ui/pages/battery.slint
+msgctxt "PageBattery"
+msgid "Charge limit"
+msgstr "Şarj limiti"
+
+#: rog-control-center/ui/pages/battery.slint
+msgctxt "PageBattery"
+msgid "Stops charging at this level to keep the battery healthier."
+msgstr "Pilin daha sağlıklı kalması için şarjı bu seviyede durdurur."
+
+#: rog-control-center/ui/pages/battery.slint
+msgctxt "PageBattery"
+msgid "One-time full charge"
+msgstr "Tek seferlik tam şarj"
+
+#: rog-control-center/ui/pages/battery.slint
+msgctxt "PageBattery"
+msgid "Charges to 100% once, then returns to your limit."
+msgstr "Bir kez %100'e kadar şarj eder, sonra limitinize döner."
+
+#: rog-control-center/ui/pages/battery.slint
+msgctxt "PageBattery"
+msgid "Charge fully"
+msgstr "Tam şarj et"
+
+#: rog-control-center/ui/pages/battery.slint
+msgctxt "PageBattery"
+msgid "Active"
+msgstr "Etkin"
+
+#: rog-control-center/ui/pages/battery.slint
+msgctxt "PageBattery"
+msgid "Charge"
+msgstr "Şarj"
+
+#: rog-control-center/ui/pages/battery.slint
+msgctxt "PageBattery"
+msgid "Status"
+msgstr "Durum"
+
+#: rog-control-center/ui/pages/battery.slint
+msgctxt "PageBattery"
+msgid "Power draw"
+msgstr "Güç tüketimi"
+
+#: rog-control-center/ui/pages/battery.slint
+msgctxt "PageBattery"
+msgid "Health"
+msgstr "Sağlık"
+
+#: rog-control-center/ui/pages/battery.slint
+msgctxt "PageBattery"
+msgid "Charge cycles"
+msgstr "Şarj döngüsü"
+
+#: rog-control-center/ui/pages/battery.slint
+msgctxt "PageBattery"
+msgid "Charging"
+msgstr "Şarj oluyor"
+
+#: rog-control-center/ui/pages/battery.slint
+msgctxt "PageBattery"
+msgid "Discharging"
+msgstr "Boşalıyor"
+
+#: rog-control-center/ui/pages/battery.slint
+msgctxt "PageBattery"
+msgid "Full"
+msgstr "Dolu"
+
+#: rog-control-center/ui/pages/battery.slint
+msgctxt "PageBattery"
+msgid "Not charging"
+msgstr "Şarj olmuyor"

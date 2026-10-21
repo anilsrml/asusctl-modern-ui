@@ -1,0 +1,19 @@
+import { Theme } from "../theme.slint";
+
+// Small pill that marks a temporary state
+export component Badge inherits Rectangle {
+    in property <string> text;
+    background: Theme.accent-bg;
+    border-radius: self.height / 2;
+    height: 22px;
+    min-width: 52px;
+
+    Text {
+        text: root.text;
+        color: Theme.accent-text;
+        font-size: Theme.font-small;
+        font-weight: 500;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+}
