@@ -31,3 +31,4 @@ desktop-extensions/gnome*/*.zip
 
 .envrc
 .direnv/
+/dist
