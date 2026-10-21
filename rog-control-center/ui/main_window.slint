@@ -189,6 +189,8 @@ export component MainWindow inherits Window {
 
             if toast: Toast {
                 x: 16px;
+                // Without a fixed height a child of this Rectangle fills the whole page
+                height: 40px;
                 y: root.height - self.height - 16px;
                 width: root.width - side-bar.width - 32px;
                 text: root.toast_text;

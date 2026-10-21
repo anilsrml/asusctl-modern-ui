@@ -138,6 +138,14 @@ export component ColourSlider inherits VerticalLayout {
                 maximum: root.base_colours.length;
                 // One less than the array length
                 changed => {
+                    // A hue alone can't colour white, grey or black: give it
+                    // full saturation and brightness so the pick shows up
+                    if (c2.value > base_saturation.length * 0.9) {
+                        c2.value = 0;
+                    }
+                    if (c3.value > base_value.length * 0.9) {
+                        c3.value = 0;
+                    }
                     set_base_colour();
                     hex = set_hex_from_colour(final_colour);
                 }
