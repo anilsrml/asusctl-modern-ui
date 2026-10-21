@@ -8,7 +8,8 @@ BIN=rog-control-center-modern
 APP_ID=io.github.anilsrml.RogControlModern
 DOMAIN=rog-control-center-modern
 
-VERSION="$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)"
+# Release version of this UI fork, independent of the upstream workspace version
+VERSION="${VERSION:-0.1.0}"
 NAME="asusctl-modern-ui-$VERSION-x86_64-linux"
 STAGE="$ROOT/dist/$NAME"
 

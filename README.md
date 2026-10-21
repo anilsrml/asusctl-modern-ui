@@ -1,7 +1,14 @@
 # ROG Control (Modern)
 
-![screenshot](docs/screenshots/overview.png)
-<!-- placeholder: docs/screenshots/{overview,fans,gpu,battery,keyboard}.png -->
+![Overview](docs/screenshots/overview.png)
+
+| Fan curves | GPU |
+|---|---|
+| ![Fan curves](docs/screenshots/fans.png) | ![GPU](docs/screenshots/gpu.png) |
+| **Battery** | **Keyboard lighting** |
+| ![Battery](docs/screenshots/battery.png) | ![Keyboard lighting](docs/screenshots/keyboard.png) |
+
+Screenshots: ASUS TUF Gaming A15 FA507RM, Turkish locale.
 
 ## English
 
