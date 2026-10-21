@@ -1,103 +1,96 @@
-import { Palette } from "std-widgets.slint";
+import { Theme } from "../theme.slint";
 
 export struct Node { x: length, y: length}
 
+// Editable fan curve. X is temperature in degrees C (0..100), Y is raw PWM (0..255)
+// shown as a percentage. Dragging asks `clamp-point` (Rust) for the allowed
+// position so the curve stays monotonic; the result is reported via `moved`.
 export component Graph inherits Rectangle {
-    in-out property <[Node]> nodes;
+    in property <[Node]> nodes;
+    in property <bool> editable: true;
     in property <Node> node_min: { x: 0px, y: 0px };
     in property <Node> node_max: { x: 100px, y: 255px };
-    property <length> graph_padding: 40px;
-    property <length> axis_font_size: 14px;
-    // Text {
-    //     x: 0;
-    //     text: "Fan PWM";
-    // }
+    pure callback clamp-point([Node], int, Node) -> Node;
+    callback moved(int, Node);
+    property <length> pad-left: 40px;
+    property <length> pad-bottom: 38px;
+    property <length> pad-top: 14px;
+    property <length> pad-right: 20px;
+    property <length> axis_font_size: Theme.font-small;
 
-    // Text {
-    //     x: root.width / 2;
-    //     y: root.height - self.height;
-    //     text: "Temperature";
-    // }
+    // Shown in the header: value of the hovered or dragged point.
+    out property <string> readout: root.active >= 0 && root.active < root.nodes.length ? @tr("{} °C → {} %", Math.round(root.nodes[root.active].x / 1px), Math.round(root.nodes[root.active].y / 1px / 255 * 100)) : "";
+    in-out property <int> active: -1;
+
+    Text {
+        x: 0px;
+        y: 0px;
+        text: "%";
+        color: Theme.text-secondary;
+        font-size: root.axis_font_size;
+    }
+
+    Text {
+        x: root.pad-left + (root.width - root.pad-left - root.pad-right) / 2 - self.width / 2;
+        y: root.height - self.height;
+        text: @tr("°C");
+        color: Theme.text-secondary;
+        font-size: root.axis_font_size;
+    }
 
     graph := Rectangle {
-        width: root.width - root.graph_padding * 2;
-        height: root.height - root.graph_padding * 2;
-        x: root.graph_padding;
-        y: root.graph_padding;
-        function scale_x_to_graph(x: length) -> length {
+        width: root.width - root.pad-left - root.pad-right;
+        height: root.height - root.pad-top - root.pad-bottom;
+        x: root.pad-left;
+        y: root.pad-top;
+        pure public function scale_x_to_graph(x: length) -> length {
             ((x - node_min.x) / (node_max.x - node_min.x)) * graph.width
         }
-        //
-        function scale_y_to_graph(y: length) -> length {
+        pure public function scale_y_to_graph(y: length) -> length {
             ((y - node_min.y) / (node_max.y - node_min.y)) * graph.height
         }
-        //
-        function scale_x_to_node(x: length) -> length {
+        pure public function scale_x_to_node(x: length) -> length {
             (x / graph.width) * (node_max.x - node_min.x)
         }
-        //
-        function scale_y_to_node(y: length) -> length {
+        pure public function scale_y_to_node(y: length) -> length {
             (y / graph.height) * (node_max.y - node_min.y)
         }
-        //
 
-        for n in 11: Path {
-            viewbox-width: self.width / 1px;
-            viewbox-height: self.height / 1px;
-            stroke: Palette.alternate-foreground.darker(200%);
-            stroke-width: 1px;
-            MoveTo {
-                x: scale_x_to_graph(n * 10px) / 1px;
-                y: 0;
-                // scale_y_to_graph(n*1px) / 1px;
-            }
-
-            LineTo {
-                x: scale_x_to_graph(n * 10px) / 1px;
-                y: graph.height / 1px;
-                //scale_y_to_graph(n*1px) / 1px;
-            }
+        for n in 11: Rectangle {
+            x: scale_x_to_graph(n * 10px);
+            width: 1px;
+            height: graph.height;
+            background: Theme.border;
         }
 
         for n in 11: Text {
-            color: Palette.accent-background;
-            font-size <=> root.axis_font_size;
-            text: "\{n * 10}c";
-            x: scale_x_to_graph(n * 10px) - self.width / 3;
-            y: graph.height + 2px;
+            color: Theme.text-secondary;
+            font-size: root.axis_font_size;
+            text: "\{n * 10}";
+            x: scale_x_to_graph(n * 10px) - self.width / 2;
+            y: graph.height + 4px;
         }
 
-        for n in 11: Path {
-            viewbox-width: self.width / 1px;
-            viewbox-height: self.height / 1px;
-            stroke: Palette.alternate-foreground.darker(200%);
-            stroke-width: 1px;
-            MoveTo {
-                x: 0;
-                //scale_x_to_graph(n*10px) / 1px;
-                y: scale_y_to_graph(n * 25.5px) / 1px;
-            }
-
-            LineTo {
-                x: graph.width / 1px;
-                //scale_x_to_graph(n*10px) / 1px;
-                y: scale_y_to_graph(n * 25.5px) / 1px;
-            }
+        for n in 11: Rectangle {
+            y: graph.height - scale_y_to_graph(n * 25.5px);
+            width: graph.width;
+            height: 1px;
+            background: Theme.border;
         }
 
         for n in 11: Text {
-            color: Palette.accent-background;
-            font-size <=> root.axis_font_size;
-            text: "\{n * 10}%";
-            x: - self.width;
+            color: Theme.text-secondary;
+            font-size: root.axis_font_size;
+            text: "\{n * 10}";
+            x: -self.width - 6px;
             y: graph.height - scale_y_to_graph(n * 25.5px) - self.height / 2;
         }
 
-        for l[idx] in nodes: path := Rectangle {
+        for l[idx] in nodes: Rectangle {
             if idx + 1 != nodes.length: Path {
                 viewbox-width: self.width / 1px;
                 viewbox-height: self.height / 1px;
-                stroke: Palette.control-foreground;
+                stroke: root.editable ? Theme.accent : Theme.text-muted;
                 stroke-width: 2px;
                 MoveTo {
                     x: scale_x_to_graph(nodes[idx].x) / 1px;
@@ -111,125 +104,63 @@ export component Graph inherits Rectangle {
             }
         }
 
-        for n[idx] in nodes: Rectangle {
-            states [
-                pressed when touch.pressed: {
-                    point.background: Palette.selection-background;
-                    tip.background: Palette.selection-background;
-                    tip.opacity: 1.0;
-                }
-                hover when touch.has-hover: {
-                    point.background: Palette.accent-background;
-                    tip.background: Palette.accent-background;
-                    tip.opacity: 1.0;
-                }
-            ]
-            //
-            point := Rectangle {
-                background: Palette.control-foreground;
-                x: scale_x_to_graph(n.x) - self.width / 2;
-                y: graph.height - scale_y_to_graph(n.y) - self.height / 2;
-                width: 18px;
-                height: self.width;
-                border-radius: self.width / 2;
-                property <length> pad: 1px;
+        for n[idx] in nodes: point := Rectangle {
+            property <bool> hot: touch.has-hover || touch.pressed;
+            property <Node> start;
+            x: scale_x_to_graph(n.x) - self.width / 2;
+            y: graph.height - scale_y_to_graph(n.y) - self.height / 2;
+            width: hot ? 18px : 14px;
+            height: self.width;
+            border-radius: self.width / 2;
+            background: root.editable ? Theme.accent : Theme.text-muted;
+            border-color: Theme.surface-raised;
+            border-width: 2px;
+            animate width { duration: 100ms; }
 
-                touch := TouchArea {
-                    function check() {
-                        if idx + 1 < nodes.length && idx > 0 {
-                            if n.x + scale_x_to_node(self.mouse-x - self.pressed-x) > nodes[idx + 1].x {
-                                n.x = nodes[idx + 1].x - pad;
-                            } else if n.x + scale_x_to_node(self.mouse-x - self.pressed-x) < nodes[idx - 1].x {
-                                n.x = nodes[idx - 1].x + pad;
-                            }
-                            if n.y + scale_y_to_node(self.height - self.mouse-y - self.pressed-y) > nodes[idx + 1].y {
-                                n.y = nodes[idx + 1].y - pad;
-                            } else if n.y + scale_y_to_node(self.height - self.mouse-y - self.pressed-y) < nodes[idx - 1].y {
-                                n.y = nodes[idx - 1].y + pad;
-                            }
-                        } else if idx == 0 {
-                            if n.x + scale_x_to_node(self.mouse-x - self.pressed-x) < 0.0 {
-                                n.x = 1px;
-                            } else if n.x + scale_x_to_node(self.mouse-x - self.pressed-x) > nodes[idx + 1].x {
-                                n.x = nodes[idx + 1].x - pad;
-                            }
-                            if n.y - scale_y_to_node(self.mouse-y - self.pressed-y) < 0.0 {
-                                n.y = 1px;
-                            } else if n.y + scale_y_to_node(self.height - self.mouse-y - self.pressed-y) > nodes[idx + 1].y {
-                                n.y = nodes[idx + 1].y - pad;
-                            }
-                        } else if idx == nodes.length - 1 {
-                            if n.x + scale_x_to_node(self.mouse-x - self.pressed-x) > scale_x_to_node(graph.width) {
-                                n.x = scale_x_to_node(graph.width - 1px);
-                            } else if n.x + scale_x_to_node(self.mouse-x - self.pressed-x) < nodes[idx - 1].x {
-                                n.x = nodes[idx - 1].x + pad;
-                            }
-                            if n.y - scale_y_to_node(self.mouse-y - self.pressed-y) > scale_y_to_node(graph.height) {
-                                n.y = scale_y_to_node(graph.height - 1px);
-                            } else if n.y + scale_y_to_node(self.height - self.mouse-y - self.pressed-y) < nodes[idx - 1].y {
-                                n.y = nodes[idx - 1].y + pad;
-                            }
-                        }
+            touch := TouchArea {
+                enabled: root.editable;
+                mouse-cursor: move;
+                changed has-hover => {
+                    if self.has-hover {
+                        root.active = idx;
+                    } else if !self.pressed && root.active == idx {
+                        root.active = -1;
                     }
-                    //
-                    moved => {
-                        if (self.pressed) {
-                            n.x += scale_x_to_node(self.mouse-x - self.pressed-x);
-                            n.y -= scale_y_to_node(self.mouse-y - self.pressed-y);
-                            self.check();
-                            // nodes[idx] = n;
-                        }
+                }
+                pointer-event(e) => {
+                    if e.kind == PointerEventKind.down {
+                        point.start = nodes[idx];
+                        root.active = idx;
+                    } else if e.kind == PointerEventKind.up && !self.has-hover && root.active == idx {
+                        root.active = -1;
                     }
-
-                    clicked => {
-                        self.check();
+                }
+                moved => {
+                    if self.pressed {
+                        root.moved(idx, root.clamp-point(nodes, idx, {
+                            x: point.start.x + scale_x_to_node(self.mouse-x - self.pressed-x),
+                            y: point.start.y - scale_y_to_node(self.mouse-y - self.pressed-y),
+                        }));
                     }
-                    mouse-cursor: move;
                 }
             }
+        }
+    }
 
-            tip := Rectangle {
-                background: Palette.control-foreground;
-                opacity: 0.3;
-                border-radius: 12px;
-                x: final_x_pos();
-                y: final_y_pos();
-                width: label.preferred-width + 14px;
-                height: label.preferred-height + 4px;
-                function x_pos() -> length {
-                    scale_x_to_graph(n.x) - label.preferred-width - 8px
-                }
-                //
-                function final_x_pos() -> length {
-                    if x_pos() > 0 {
-                        x_pos()
-                    } else {
-                        x_pos() + label.preferred-width
-                    }
-                }
-                //
-                function y_pos() -> length {
-                    graph.height - scale_y_to_graph(n.y) - self.height - 4px
-                }
-                //
-                function final_y_pos() -> length {
-                    if y_pos() > 0 {
-                        y_pos()
-                    } else {
-                        y_pos() + label.preferred-height
-                    }
-                }
-                //
-                function fan_pct() -> int {
-                    Math.floor(n.y / 1px) / 255 * 100
-                }
-                //
-                label := Text {
-                    color: Palette.accent-foreground;
-                    font-size: 14px;
-                    text: "\{Math.floor(n.x / 1px)}c, \{fan_pct()}%";
-                }
-            }
+    // Floating value tip for the active point.
+    if root.active >= 0 && root.active < root.nodes.length: Rectangle {
+        background: Theme.surface;
+        border-color: Theme.border-strong;
+        border-width: 1px;
+        border-radius: Theme.radius;
+        width: tip-label.preferred-width + 16px;
+        height: tip-label.preferred-height + 8px;
+        x: min(max(root.pad-left + graph.scale_x_to_graph(root.nodes[root.active].x) - self.width / 2, 0px), root.width - self.width);
+        y: max(root.pad-top + graph.height - graph.scale_y_to_graph(root.nodes[root.active].y) - self.height - 14px, 0px);
+        tip-label := Text {
+            text: root.readout;
+            color: Theme.text;
+            font-size: Theme.font-small;
         }
     }
 }

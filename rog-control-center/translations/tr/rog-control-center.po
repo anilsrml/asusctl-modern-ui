@@ -1233,3 +1233,48 @@ msgstr "Çık"
 #~ msgctxt "PageSystem"
 #~ msgid "EPP for Quiet Policy"
 #~ msgstr "Sessiz Politikası için EPP"
+
+#: rog-control-center/ui/pages/fans.slint
+msgctxt "PageFans"
+msgid "Fan curve"
+msgstr "Fan eğrisi"
+
+#: rog-control-center/ui/pages/fans.slint
+msgctxt "PageFans"
+msgid "This fan is not available on this machine"
+msgstr "Bu fan bu makinede mevcut değil"
+
+#: rog-control-center/ui/pages/fans.slint
+msgctxt "PageFans"
+msgid "Use custom curve"
+msgstr "Özel eğriyi kullan"
+
+#: rog-control-center/ui/pages/fans.slint
+msgctxt "PageFans"
+msgid "Drag the points to shape the curve, then apply."
+msgstr "Eğriyi şekillendirmek için noktaları sürükleyin, sonra uygulayın."
+
+#: rog-control-center/ui/pages/fans.slint
+msgctxt "PageFans"
+msgid "Off: the firmware default curve is used."
+msgstr "Kapalı: aygıt yazılımının varsayılan eğrisi kullanılır."
+
+#: rog-control-center/ui/pages/fans.slint
+msgctxt "PageFans"
+msgid "Reset to default"
+msgstr "Varsayılana sıfırla"
+
+#: rog-control-center/ui/pages/fans.slint
+msgctxt "PageFans"
+msgid "Apply"
+msgstr "Uygula"
+
+#: rog-control-center/ui/pages/fans.slint
+msgctxt "Graph"
+msgid "{} °C → {} %"
+msgstr "{} °C → {} %"
+
+#: rog-control-center/ui/pages/fans.slint
+msgctxt "Graph"
+msgid "°C"
+msgstr "°C"

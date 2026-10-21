@@ -345,6 +345,38 @@ export global FanPageData {
         },
     ];
 
-    function set_fan(profile: Profile, fan: FanType, data: [Node]) {
+    pure callback clamp_point([Node], int, Node) -> Node;
+
+    // profile index: 0 Quiet, 1 Balanced, 2 Performance. fan index: 0 CPU, 1 GPU, 2 Mid.
+    pure public function nodes_for(profile: int, fan: int) -> [Node] {
+        profile == 0 ? (fan == 0 ? quiet_cpu : fan == 1 ? quiet_gpu : quiet_mid)
+        : profile == 1 ? (fan == 0 ? balanced_cpu : fan == 1 ? balanced_gpu : balanced_mid)
+        : (fan == 0 ? performance_cpu : fan == 1 ? performance_gpu : performance_mid)
+    }
+
+    pure public function enabled_for(profile: int, fan: int) -> bool {
+        profile == 0 ? (fan == 0 ? quiet_cpu_enabled : fan == 1 ? quiet_gpu_enabled : quiet_mid_enabled)
+        : profile == 1 ? (fan == 0 ? balanced_cpu_enabled : fan == 1 ? balanced_gpu_enabled : balanced_mid_enabled)
+        : (fan == 0 ? performance_cpu_enabled : fan == 1 ? performance_gpu_enabled : performance_mid_enabled)
+    }
+
+    public function set_enabled_for(profile: int, fan: int, value: bool) {
+        if profile == 0 {
+            if fan == 0 { quiet_cpu_enabled = value; } else if fan == 1 { quiet_gpu_enabled = value; } else { quiet_mid_enabled = value; }
+        } else if profile == 1 {
+            if fan == 0 { balanced_cpu_enabled = value; } else if fan == 1 { balanced_gpu_enabled = value; } else { balanced_mid_enabled = value; }
+        } else {
+            if fan == 0 { performance_cpu_enabled = value; } else if fan == 1 { performance_gpu_enabled = value; } else { performance_mid_enabled = value; }
+        }
+    }
+
+    public function set_node_for(profile: int, fan: int, idx: int, node: Node) {
+        if profile == 0 {
+            if fan == 0 { quiet_cpu[idx] = node; } else if fan == 1 { quiet_gpu[idx] = node; } else { quiet_mid[idx] = node; }
+        } else if profile == 1 {
+            if fan == 0 { balanced_cpu[idx] = node; } else if fan == 1 { balanced_gpu[idx] = node; } else { balanced_mid[idx] = node; }
+        } else {
+            if fan == 0 { performance_cpu[idx] = node; } else if fan == 1 { performance_gpu[idx] = node; } else { performance_mid[idx] = node; }
+        }
     }
 }

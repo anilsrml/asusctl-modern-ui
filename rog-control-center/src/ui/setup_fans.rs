@@ -8,6 +8,7 @@ use rog_profiles::fan_curve_set::CurveData;
 use slint::{ComponentHandle, Model, Weak};
 
 use crate::config::Config;
+use crate::ui::fan_curve::clamp_point;
 use crate::{FanPageData, FanType, MainWindow, Node};
 
 pub fn update_fan_data(
@@ -98,6 +99,13 @@ pub fn update_fan_data(
 
 pub fn setup_fan_curve_page(ui: &MainWindow, _config: Arc<Mutex<Config>>) {
     let handle = ui.as_weak();
+
+    ui.global::<FanPageData>()
+        .on_clamp_point(|nodes, idx, node| {
+            let points: Vec<(f32, f32)> = nodes.iter().map(|n| (n.x, n.y)).collect();
+            let (x, y) = clamp_point(&points, idx.max(0) as usize, (node.x, node.y));
+            Node { x, y }
+        });
 
     tokio::spawn(async move {
         // Create the connections/proxies here to prevent future delays in process
