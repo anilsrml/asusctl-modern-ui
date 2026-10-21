@@ -11,6 +11,7 @@ use slint::{ComponentHandle, Model, ModelRc, SharedString, VecModel};
 
 use super::show_toast;
 use crate::config::Config;
+use crate::types::profile_map;
 use crate::zbus_proxies::{AppState, find_iface_async};
 use crate::{AttrMinMax, MainWindow, SystemPageData, set_ui_callbacks};
 
@@ -448,28 +449,20 @@ pub fn setup_system_page_callbacks(ui: &MainWindow, _states: Arc<Mutex<Config>>)
         );
 
         let platform_copy = platform.clone();
-        if let Ok(mut value) = platform.platform_profile_choices().await {
+        if let Ok(value) = platform.platform_profile_choices().await {
             debug!("Available platform profile choices: {:?}", value);
             handle
                 .upgrade_in_event_loop(move |handle| {
-                    value.sort();
                     let translate: Vec<SharedString> = handle
                         .global::<SystemPageData>()
                         .get_platform_profile_choices()
                         .iter()
                         .collect();
-                    let mut indexes = Vec::new();
-                    let strings: Vec<SharedString> = value
+                    let raw: Vec<i32> = value.iter().map(|p| i32::from(*p)).collect();
+                    let indexes = profile_map::dropdown_indexes(&raw, translate.len());
+                    let strings: Vec<SharedString> = indexes
                         .iter()
-                        .filter_map(|p| {
-                            let index = i32::from(*p) as usize;
-                            if index < translate.len() {
-                                indexes.push(index as i32);
-                                Some(translate[index].clone())
-                            } else {
-                                None
-                            }
-                        })
+                        .map(|i| translate[*i as usize].clone())
                         .collect();
                     let choices = ModelRc::new(VecModel::from(strings));
                     handle
@@ -487,7 +480,7 @@ pub fn setup_system_page_callbacks(ui: &MainWindow, _states: Arc<Mutex<Config>>)
                             handle
                                 .upgrade_in_event_loop(move |handle| {
                                     if let Some(position) =
-                                        indexes.iter().position(|&index| index == profile_value)
+                                        profile_map::position_of(&indexes, profile_value)
                                     {
                                         handle
                                             .global::<SystemPageData>()
@@ -585,12 +578,10 @@ pub fn setup_system_page_callbacks(ui: &MainWindow, _states: Arc<Mutex<Config>>)
                                     let indexes = handle
                                         .global::<SystemPageData>()
                                         .get_platform_profile_indexes();
-                                    handle
-                                        .global::<SystemPageData>()
-                                        .set_platform_profile(out as i32);
+                                    let indexes: Vec<i32> = indexes.iter().collect();
                                     let profile_value = <i32>::from(out);
                                     if let Some(position) =
-                                        indexes.iter().position(|index| index == profile_value)
+                                        profile_map::position_of(&indexes, profile_value)
                                     {
                                         handle
                                             .global::<SystemPageData>()

@@ -2,3 +2,4 @@
 
 pub mod aura_types;
 pub mod fan_types;
+pub mod profile_map;
