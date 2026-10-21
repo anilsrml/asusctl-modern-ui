@@ -1,3 +1,4 @@
+pub mod aura_modes;
 pub mod battery;
 pub mod fan_curve;
 pub mod overview;

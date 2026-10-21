@@ -7,6 +7,7 @@ use rog_dbus::zbus_aura::AuraProxy;
 use slint::{ComponentHandle, Model, RgbaColor, SharedString};
 
 use crate::config::Config;
+use crate::ui::aura_modes::{brightness_index, mode_chips, mode_index};
 use crate::ui::show_toast;
 use crate::{
     AuraPageData, MainWindow, PowerZones as SlintPowerZones, set_ui_callbacks, set_ui_props_async,
@@ -79,7 +80,12 @@ pub fn setup_aura_page(
             return Ok::<(), zbus::Error>(());
         };
 
-        set_ui_props_async!(handle, aura, AuraPageData, brightness);
+        if let Ok(level) = aura.brightness().await {
+            let idx = brightness_index(level.into());
+            handle
+                .upgrade_in_event_loop(move |h| h.global::<AuraPageData>().set_brightness(idx))
+                .ok();
+        }
         set_ui_props_async!(handle, aura, AuraPageData, led_power);
         set_ui_props_async!(handle, aura, AuraPageData, device_type);
 
@@ -101,15 +107,11 @@ pub fn setup_aura_page(
         handle
             .upgrade_in_event_loop(move |h| {
                 let names = h.global::<AuraPageData>().get_mode_names();
-                let mut raws = Vec::new();
-                let mut mode_names = Vec::new();
-                for (i, name) in names.iter().enumerate() {
-                    let raw = i as i32;
-                    if modes_vec.contains(&raw) && i != 9 {
-                        raws.push(raw);
-                        mode_names.push(name.clone());
-                    }
-                }
+                let raws = mode_chips(&modes_vec);
+                let mode_names: Vec<SharedString> = raws
+                    .iter()
+                    .filter_map(|r| names.row_data(*r as usize))
+                    .collect();
                 h.global::<AuraPageData>()
                     .set_supported_basic_modes(raws.as_slice().into());
                 h.global::<AuraPageData>()
@@ -117,7 +119,7 @@ pub fn setup_aura_page(
                 if let Some(d) = d_slint {
                     h.global::<AuraPageData>().invoke_update_led_mode_data(d);
                     if let Some(cm) = raw_mode {
-                        let idx = raws.iter().position(|&r| r == cm).unwrap_or(0) as i32;
+                        let idx = mode_index(&raws, cm).unwrap_or(0) as i32;
                         h.global::<AuraPageData>().set_current_available_mode(idx);
                     }
                     h.invoke_external_colour_change();
@@ -225,7 +227,7 @@ pub fn setup_aura_page(
                                 .get_supported_basic_modes()
                                 .iter()
                                 .collect();
-                            let idx = supported.iter().position(|&x| x == raw).unwrap_or(0) as i32;
+                            let idx = mode_index(&supported, raw).unwrap_or(0) as i32;
                             h.global::<AuraPageData>().set_current_available_mode(idx);
                             h.invoke_external_colour_change();
                         })
