@@ -1,5 +1,11 @@
 # ROG Control (Modern)
 
+[![Release](https://img.shields.io/github/v/release/anilsrml/asusctl-modern-ui)](https://github.com/anilsrml/asusctl-modern-ui/releases/latest)
+[![License: MPL-2.0](https://img.shields.io/badge/license-MPL--2.0-blue)](LICENSE)
+[![Made with Slint](https://raw.githubusercontent.com/slint-ui/slint/master/logo/MadeWithSlint-logo-whitebg.png)](https://slint.dev)
+
+A cleaner, simpler control panel for ASUS ROG / TUF laptops on Linux. It is a drop-in companion to [asusctl](https://github.com/OpenGamingCollective/asusctl): same `asusd` daemon, redesigned app.
+
 ![Overview](docs/screenshots/overview.png)
 
 | Fan curves | GPU |
@@ -16,6 +22,14 @@ A modern Slint-based GUI for [asusd](https://github.com/OpenGamingCollective/asu
 
 - Based on [OpenGamingCollective/asusctl](https://github.com/OpenGamingCollective/asusctl) (MPL-2.0). The daemon is **unchanged** and **required**: install and run `asusd` first.
 - Not affiliated with or endorsed by ASUS.
+
+### What's different from upstream ROG Control Center
+
+- One **Overview** page replaces the crowded System Control page: live temperatures, fans and battery, one-click profile, auto profile on AC / battery, quick settings
+- Redesigned **Fan curves** (drag points, live value readout, monotonic curve), **GPU**, **Battery** (charge limit presets, health, one-time full charge) and **Keyboard lighting** pages
+- One flat light / dark theme, sidebar icons, success / error toasts that show the reason
+- Only the features your laptop supports are shown
+- Installs per user without sudo and runs side by side with upstream `rog-control-center`
 
 ### Install from release
 
@@ -82,3 +96,5 @@ Uygulamanın kendi kimliği vardır (`rog-control-center-modern`, D-Bus adı `io
 ## License
 
 MPL-2.0, see [LICENSE](LICENSE) and [NOTICE](NOTICE). Upstream README: [docs/UPSTREAM_README.md](docs/UPSTREAM_README.md).
+
+The user interface is built with [Slint](https://slint.dev), used under the Slint Royalty-free Desktop, Mobile, and Web Applications License (attribution above). "ASUS" and "ROG" are trademarks of ASUSTeK Computer Inc.; this project is not affiliated with ASUS.
