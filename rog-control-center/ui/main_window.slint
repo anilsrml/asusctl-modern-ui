@@ -45,6 +45,7 @@ export component MainWindow inherits Window {
     private property <bool> show_notif;
     // TODO: change if TUF on the logo in the menu on the main page
     in property <bool> is_tuf: false;
+    in-out property <int> current_page <=> side-bar.current-item;
     private property <bool> fade_cover;
     private property <bool> toast: false;
     private property <string> toast_text: "";

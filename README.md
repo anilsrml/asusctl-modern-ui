@@ -14,7 +14,7 @@ A cleaner, simpler control panel for ASUS ROG / TUF laptops on Linux. It is a dr
 | **Battery** | **Keyboard lighting** |
 | ![Battery](docs/screenshots/battery.png) | ![Keyboard lighting](docs/screenshots/keyboard.png) |
 
-Screenshots: ASUS TUF Gaming A15 FA507RM, Turkish locale.
+Screenshots: ASUS TUF Gaming A15 FA507RM (on battery, so some power limits are lower or hidden).
 
 ## English
 
@@ -30,6 +30,7 @@ A modern Slint-based GUI for [asusd](https://github.com/OpenGamingCollective/asu
 - One flat light / dark theme, sidebar icons, success / error toasts that show the reason
 - Only the features your laptop supports are shown
 - Installs per user without sudo and runs side by side with upstream `rog-control-center`
+- `--page fans` (or overview, keyboard, gpu, battery, …) opens straight on a page
 
 ### Install from release
 

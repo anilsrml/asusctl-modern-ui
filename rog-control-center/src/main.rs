@@ -33,6 +33,15 @@ fn main() -> Result<()> {
 
     let cli_parsed: CliStart = argh::from_env();
 
+    if let Some(name) = &cli_parsed.page {
+        match rog_control_center::cli_options::page_index(name) {
+            Some(i) => {
+                rog_control_center::ui::START_PAGE.set(i).ok();
+            }
+            None => eprintln!("Unknown page '{name}', opening the overview"),
+        }
+    }
+
     if cli_parsed.version {
         print_versions();
         return Ok(());

@@ -15,6 +15,9 @@ use std::sync::{Arc, Mutex};
 
 static TOAST_SEQ: AtomicU64 = AtomicU64::new(0);
 
+/// Sidebar page to open first, set once from `--page`
+pub static START_PAGE: std::sync::OnceLock<i32> = std::sync::OnceLock::new();
+
 use config_traits::StdConfig;
 use log::{error, warn};
 use rog_dbus::list_iface_blocking;
@@ -126,6 +129,9 @@ pub fn setup_window(
     let ui = MainWindow::new().expect("Couldn't create main window");
     // propagate TUF flag to the UI so the sidebar can swap logo branding
     ui.set_is_tuf(is_tuf);
+    if let Some(page) = START_PAGE.get() {
+        ui.set_current_page(*page);
+    }
     if let Err(e) = ui.window().show() {
         warn!("Couldn't show main window: {e:?}");
     }
