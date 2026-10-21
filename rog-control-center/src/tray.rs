@@ -16,8 +16,8 @@ use tokio::sync::watch;
 use crate::config::Config;
 use crate::window::{WindowCommand, WindowController};
 
-const TRAY_LABEL: &str = "ROG Control Center";
-const TRAY_ICON_PATH: &str = "/usr/share/icons/hicolor/512x512/apps/";
+const TRAY_LABEL: &str = crate::WINDOW_TITLE;
+const TRAY_ICON_SUBDIR: &str = "icons/hicolor/512x512/apps";
 
 struct Icons {
     rog_blue: Icon,
@@ -30,12 +30,21 @@ static ICONS: LazyLock<Icons> = LazyLock::new(|| Icons {
     rog_blue: read_icon(Path::new("asus_notif_blue.png")),
     rog_red: read_icon(Path::new("asus_notif_red.png")),
     rog_white: read_icon(Path::new("asus_notif_white.png")),
-    gpu_integrated: read_icon(Path::new("rog-control-center.png")),
+    gpu_integrated: read_icon(Path::new("rog-control-center-modern.png")),
 });
 
 fn read_icon(file: &Path) -> Icon {
-    let mut path = PathBuf::from(TRAY_ICON_PATH);
-    path.push(file);
+    // user-local install first, then the system-wide one
+    let mut dirs = Vec::new();
+    if let Some(data) = dirs::data_dir() {
+        dirs.push(data.join(TRAY_ICON_SUBDIR));
+    }
+    dirs.push(PathBuf::from("/usr/share").join(TRAY_ICON_SUBDIR));
+    let path = dirs
+        .iter()
+        .map(|d| d.join(file))
+        .find(|p| p.is_file())
+        .unwrap_or_else(|| dirs[dirs.len() - 1].join(file));
     let bytes = match std::fs::read(&path) {
         Ok(b) => b,
         Err(e) => {
@@ -101,7 +110,7 @@ impl ksni::Tray for AsusTray {
         vec![
             StandardItem {
                 label: "Open ROGCC".into(),
-                icon_name: "rog-control-center".into(),
+                icon_name: crate::APP_ICON_NAME.into(),
                 activate: Box::new(move |s: &mut AsusTray| {
                     s.window.request(WindowCommand::Show);
                 }),

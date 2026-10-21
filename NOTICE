@@ -1,0 +1,20 @@
+ROG Control (Modern) / asusctl-modern-ui
+========================================
+
+This project is a fork of asusctl / ROG Control Center
+(https://github.com/OpenGamingCollective/asusctl), licensed under the
+Mozilla Public License 2.0 (see LICENSE).
+
+Upstream authors and contributors:
+  - Luke D. Jones <luke@ljones.dev>
+  - Denis Benato <benato.denis96@gmail.com>
+  - and all contributors listed in the upstream repository history
+    (https://github.com/OpenGamingCollective/asusctl/graphs/contributors)
+
+The asusd daemon and the xyz.ljones.* D-Bus API are unchanged and come from
+upstream. Modifications in this fork (new Slint UI, own application identity,
+packaging) are Copyright their respective authors and distributed under the
+same MPL-2.0 license.
+
+"ASUS" and "ROG" are trademarks of ASUSTeK Computer Inc. This project is not
+affiliated with, endorsed by, or sponsored by ASUS.

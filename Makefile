@@ -11,8 +11,9 @@ datarootdir = $(prefix)/share
 libdir = $(exec_prefix)/lib
 zshcpl = $(datarootdir)/zsh/site-functions
 
-BIN_ROG := rog-control-center
-APP_ID := org.opengamingcollective.rog-control-center
+BIN_ROG := rog-control-center-modern
+PKG_ROG := rog-control-center
+APP_ID := io.github.anilsrml.RogControlModern
 BIN_C := asusctl
 BIN_D := asusd
 BIN_S := asus-shutdown
@@ -100,7 +101,7 @@ install-data-rog_gui: target/$(TARGET)/$(BIN_ROG)
 	$(INSTALL_DATA) "./rog-control-center/data/$(BIN_ROG).png" "$(DESTDIR)$(datarootdir)/icons/hicolor/512x512/apps/$(BIN_ROG).png"
 	$(INSTALL_DATA) "./rog-control-center/data/$(APP_ID).metainfo.xml" "$(DESTDIR)$(datarootdir)/metainfo/$(APP_ID).metainfo.xml"
 	cd rog-aura/data/layouts && find . -type f -name "*.ron" -exec $(INSTALL_DATA) "{}" "$(DESTDIR_REALPATH)$(datarootdir)/rog-gui/layouts/{}" \;
-	set -- $$(ls -t target/$(TARGET)/build/$(BIN_ROG)-*/out/translations/*/LC_MESSAGES/$(BIN_ROG).mo 2>/dev/null); \
+	set -- $$(ls -t target/$(TARGET)/build/$(PKG_ROG)-*/out/translations/*/LC_MESSAGES/$(BIN_ROG).mo 2>/dev/null); \
 	if [ $$# -eq 0 ]; then \
 		echo "no compiled translations found, skipping locale install" >&2; \
 	else \

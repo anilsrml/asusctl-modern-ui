@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>org.opengamingcollective.rog-control-center</id>
+  <id>io.github.anilsrml.RogControlModern</id>
   
-  <name>Rog Control Center</name>
+  <name>ROG Control (Modern)</name>
   <summary>A one-stop-shop GUI tool for asusd/asusctl</summary>
-  <icon type="remote">https://github.com/OpenGamingCollective/asusctl/blob/main/rog-control-center/data/rog-control-center.png</icon>
+  <icon type="remote">https://github.com/anilsrml/asusctl-modern-ui/blob/main/rog-control-center/data/rog-control-center-modern.png</icon>
   
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>MPL-2.0</project_license>
   
   <url type="homepage">https://asus-linux.org</url>
-  <url type="bugtracker">https://github.com/OpenGamingCollective/asusctl/issues</url>
+  <url type="bugtracker">https://github.com/anilsrml/asusctl-modern-ui/issues</url>
   <url type="faq">https://asus-linux.org/faq/</url>
   <url type="help">https://asus-linux.org/manual/</url>
-  <url type="vcs-browser">https://github.com/OpenGamingCollective/asusctl</url>
+  <url type="vcs-browser">https://github.com/anilsrml/asusctl-modern-ui</url>
 
   <categories>
     <category>System</category>
@@ -45,5 +45,5 @@
     <keyword>Armoury Crate</keyword>
   </keywords>
 
-  <launchable type="desktop-id">org.opengamingcollective.rog-control-center.desktop</launchable>
+  <launchable type="desktop-id">io.github.anilsrml.RogControlModern.desktop</launchable>
 </component>

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=ROG Control (Modern)
+Comment=Modern UI for asusd on ASUS ROG laptops
+Categories=Settings;System;
+Icon=rog-control-center-modern
+Exec=rog-control-center-modern
+StartupWMClass=io.github.anilsrml.RogControlModern
+Terminal=false
